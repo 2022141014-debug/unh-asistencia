@@ -154,78 +154,92 @@
       </section>
 
       <section id="resultados" class="panel-section">
-        <div class="card">
-          <h3>Resultados de asistencia</h3>
-          <p class="section-desc">
-            Consulta el total de docentes registrados por departamento académico según fecha y tipo de asistencia.
-          </p>
+  <div class="card">
+    <h3>Resultados de asistencia</h3>
+    <p class="section-desc">
+      Seleccione una fecha y luego una asistencia programada para visualizar los resultados.
+    </p>
 
-          <div class="form-grid report-grid">
-            <div class="form-group">
-              <label>Fecha</label>
-              <input id="resultadoFecha" type="date" />
-            </div>
+    <div class="form-grid report-grid">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input id="resultadoFecha" type="date" />
+      </div>
+    </div>
 
-            <div class="form-group">
-              <label>Tipo de asistencia</label>
-              <select id="resultadoTipo">
-                <option value="">Seleccione</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-              </select>
-            </div>
+    <input type="hidden" id="resultadoAsistenciaId" />
 
-            <div class="form-actions">
-              <button class="btn primary" id="btnConsultarResultados">
-                Consultar resultados
-              </button>
-            </div>
-          </div>
-
-          <div class="results-summary">
-            <div class="result-total-card">
-              <span>Total de docentes registrados</span>
-              <strong id="resultadoTotal">0</strong>
-            </div>
-          </div>
-
-          <div class="department-dashboard">
-            <h4>Docentes registrados por departamento</h4>
-            <div id="dashboardResultados" class="department-grid">
-              <p class="empty-message">Seleccione una fecha y tipo de asistencia para visualizar resultados.</p>
-            </div>
-          </div>
+    <div class="attendance-selection">
+      <div class="attendance-column">
+        <h4>Entradas programadas</h4>
+        <div id="resultadoEntradas" class="attendance-options">
+          <p class="empty-message">Seleccione una fecha.</p>
         </div>
-      </section>
+      </div>
 
-      <section id="reportes" class="panel-section">
-        <div class="card">
-          <h3>Reportes</h3>
-          <p class="section-desc">Genera reportes en Excel filtrando por fecha y tipo de asistencia.</p>
-
-          <div class="form-grid report-grid">
-            <div class="form-group">
-              <label>Fecha</label>
-              <input id="reporteFecha" type="date" />
-            </div>
-
-            <div class="form-group">
-              <label>Tipo</label>
-              <select id="reporteTipo">
-                <option value="">Todos</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-              </select>
-            </div>
-
-            <div class="form-actions">
-              <button class="btn primary" id="btnGenerarReporte">
-                Generar Excel
-              </button>
-            </div>
-          </div>
+      <div class="attendance-column">
+        <h4>Salidas programadas</h4>
+        <div id="resultadoSalidas" class="attendance-options">
+          <p class="empty-message">Seleccione una fecha.</p>
         </div>
-      </section>
+      </div>
+    </div>
+
+    <div class="results-summary">
+      <div class="result-total-card">
+        <span>Total de docentes registrados</span>
+        <strong id="resultadoTotal">0</strong>
+      </div>
+    </div>
+
+    <div class="department-dashboard">
+      <h4>Docentes registrados por departamento</h4>
+      <div id="dashboardResultados" class="department-grid">
+        <p class="empty-message">Seleccione una asistencia programada.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="reportes" class="panel-section">
+  <div class="card">
+    <h3>Reportes</h3>
+    <p class="section-desc">
+      Seleccione una fecha y una asistencia programada para generar el Excel.
+    </p>
+
+    <div class="form-grid report-grid">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input id="reporteFecha" type="date" />
+      </div>
+    </div>
+
+    <input type="hidden" id="reporteAsistenciaId" />
+
+    <div class="attendance-selection">
+      <div class="attendance-column">
+        <h4>Entradas programadas</h4>
+        <div id="reporteEntradas" class="attendance-options">
+          <p class="empty-message">Seleccione una fecha.</p>
+        </div>
+      </div>
+
+      <div class="attendance-column">
+        <h4>Salidas programadas</h4>
+        <div id="reporteSalidas" class="attendance-options">
+          <p class="empty-message">Seleccione una fecha.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn primary" id="btnGenerarReporte">
+        Generar Excel
+      </button>
+    </div>
+  </div>
+</section>
 
     </section>
   </main>

@@ -7,10 +7,18 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarMenu();
   cargarAsistenciasProgramadas();
 
-  document.getElementById("btnMarcarUbicacion").addEventListener("click", marcarUbicacionActual);
-  document.getElementById("formProgramacion").addEventListener("submit", guardarProgramacion);
-  document.getElementById("btnGenerarReporte").addEventListener("click", generarReporteExcel);
-  document.getElementById("btnConsultarResultados").addEventListener("click", consultarResultados);
+  document.getElementById("btnMarcarUbicacion")?.addEventListener("click", marcarUbicacionActual);
+  document.getElementById("formProgramacion")?.addEventListener("submit", guardarProgramacion);
+
+  document.getElementById("resultadoFecha")?.addEventListener("change", () => {
+    cargarAsistenciasPorFecha("resultado");
+  });
+
+  document.getElementById("reporteFecha")?.addEventListener("change", () => {
+    cargarAsistenciasPorFecha("reporte");
+  });
+
+  document.getElementById("btnGenerarReporte")?.addEventListener("click", generarReporteExcel);
 });
 
 function inicializarMenu() {
@@ -322,23 +330,107 @@ async function eliminarAsistencia(id) {
     return;
   }
 
-  if (totalRegistros > 0) {
-    mostrarToast("Asistencia y registros asociados eliminados correctamente.", "success");
-  } else {
-    mostrarToast("Asistencia eliminada correctamente.", "success");
-  }
+  mostrarToast(
+    totalRegistros > 0
+      ? "Asistencia y registros asociados eliminados correctamente."
+      : "Asistencia eliminada correctamente.",
+    "success"
+  );
 
   cargarAsistenciasProgramadas();
 }
 
+/* ===========================
+   RESULTADOS Y REPORTES
+=========================== */
+
+async function cargarAsistenciasPorFecha(modulo) {
+  const fecha = document.getElementById(`${modulo}Fecha`).value;
+  const entradasBox = document.getElementById(`${modulo}Entradas`);
+  const salidasBox = document.getElementById(`${modulo}Salidas`);
+  const hiddenInput = document.getElementById(`${modulo}AsistenciaId`);
+
+  hiddenInput.value = "";
+
+  if (modulo === "resultado") {
+    document.getElementById("resultadoTotal").textContent = "0";
+    document.getElementById("dashboardResultados").innerHTML =
+      `<p class="empty-message">Seleccione una asistencia programada.</p>`;
+  }
+
+  if (!fecha) {
+    entradasBox.innerHTML = `<p class="empty-message">Seleccione una fecha.</p>`;
+    salidasBox.innerHTML = `<p class="empty-message">Seleccione una fecha.</p>`;
+    return;
+  }
+
+  entradasBox.innerHTML = `<p class="empty-message">Cargando entradas...</p>`;
+  salidasBox.innerHTML = `<p class="empty-message">Cargando salidas...</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("asistencias_programadas")
+    .select("*")
+    .eq("fecha", fecha)
+    .order("hora_inicio", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    entradasBox.innerHTML = `<p class="empty-message">Error al cargar asistencias.</p>`;
+    salidasBox.innerHTML = `<p class="empty-message">Error al cargar asistencias.</p>`;
+    return;
+  }
+
+  const entradas = (data || []).filter(a => a.tipo === "entrada");
+  const salidas = (data || []).filter(a => a.tipo === "salida");
+
+  renderizarOpcionesAsistencia(modulo, entradasBox, entradas);
+  renderizarOpcionesAsistencia(modulo, salidasBox, salidas);
+}
+
+function renderizarOpcionesAsistencia(modulo, contenedor, asistencias) {
+  if (!asistencias.length) {
+    contenedor.innerHTML = `<p class="empty-message">No hay asistencias programadas.</p>`;
+    return;
+  }
+
+  contenedor.innerHTML = "";
+
+  asistencias.forEach((a) => {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "attendance-option";
+    boton.dataset.id = a.id;
+
+    boton.innerHTML = `
+      <strong>${a.nombre_lugar}</strong>
+      <span>${formatearHora(a.hora_inicio)} - ${formatearHora(a.hora_fin)}</span>
+      <small>${a.tipo.toUpperCase()}</small>
+    `;
+
+    boton.addEventListener("click", () => {
+      document
+        .querySelectorAll(`#${modulo}Entradas .attendance-option, #${modulo}Salidas .attendance-option`)
+        .forEach(btn => btn.classList.remove("selected"));
+
+      boton.classList.add("selected");
+      document.getElementById(`${modulo}AsistenciaId`).value = a.id;
+
+      if (modulo === "resultado") {
+        consultarResultados();
+      }
+    });
+
+    contenedor.appendChild(boton);
+  });
+}
+
 async function consultarResultados() {
-  const fecha = document.getElementById("resultadoFecha").value;
-  const tipo = document.getElementById("resultadoTipo").value;
+  const asistenciaId = document.getElementById("resultadoAsistenciaId").value;
   const contenedor = document.getElementById("dashboardResultados");
   const totalTexto = document.getElementById("resultadoTotal");
 
-  if (!fecha || !tipo) {
-    mostrarToast("Seleccione una fecha y un tipo de asistencia.", "warning");
+  if (!asistenciaId) {
+    mostrarToast("Seleccione una asistencia programada.", "warning");
     return;
   }
 
@@ -347,13 +439,8 @@ async function consultarResultados() {
 
   const { data, error } = await supabaseClient
     .from("registros_asistencia")
-    .select(`
-      departamento,
-      asistencias_programadas (
-        fecha,
-        tipo
-      )
-    `);
+    .select("departamento")
+    .eq("asistencia_programada_id", asistenciaId);
 
   if (error) {
     console.error(error);
@@ -362,34 +449,26 @@ async function consultarResultados() {
     return;
   }
 
-  const registrosFiltrados = (data || []).filter((registro) => {
-    return (
-      registro.asistencias_programadas?.fecha === fecha &&
-      registro.asistencias_programadas?.tipo === tipo
-    );
-  });
-
-  if (!registrosFiltrados.length) {
+  if (!data || data.length === 0) {
     contenedor.innerHTML = `
       <p class="empty-message">
-        No existen registros para la fecha y tipo de asistencia seleccionados.
+        No existen registros para la asistencia seleccionada.
       </p>
     `;
     totalTexto.textContent = "0";
-    mostrarToast("No se encontraron registros con esos filtros.", "warning");
     return;
   }
 
   const conteo = {};
 
-  registrosFiltrados.forEach((registro) => {
+  data.forEach((registro) => {
     const departamento = registro.departamento || "Sin departamento";
     conteo[departamento] = (conteo[departamento] || 0) + 1;
   });
 
   const departamentos = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
 
-  totalTexto.textContent = registrosFiltrados.length;
+  totalTexto.textContent = data.length;
 
   contenedor.innerHTML = departamentos.map(([departamento, cantidad]) => `
     <div class="department-card">
@@ -402,8 +481,12 @@ async function consultarResultados() {
 }
 
 async function generarReporteExcel() {
-  const fecha = document.getElementById("reporteFecha").value;
-  const tipo = document.getElementById("reporteTipo").value;
+  const asistenciaId = document.getElementById("reporteAsistenciaId").value;
+
+  if (!asistenciaId) {
+    mostrarToast("Seleccione una asistencia programada.", "warning");
+    return;
+  }
 
   const { data, error } = await supabaseClient
     .from("registros_asistencia")
@@ -424,7 +507,8 @@ async function generarReporteExcel() {
         hora_inicio,
         hora_fin
       )
-    `);
+    `)
+    .eq("asistencia_programada_id", asistenciaId);
 
   if (error) {
     console.error(error);
@@ -432,22 +516,12 @@ async function generarReporteExcel() {
     return;
   }
 
-  let registros = data || [];
-
-  if (fecha) {
-    registros = registros.filter(r => r.asistencias_programadas?.fecha === fecha);
-  }
-
-  if (tipo) {
-    registros = registros.filter(r => r.asistencias_programadas?.tipo === tipo);
-  }
-
-  if (!registros.length) {
-    mostrarToast("No existen registros para los filtros seleccionados.", "warning");
+  if (!data || data.length === 0) {
+    mostrarToast("No existen registros para la asistencia seleccionada.", "warning");
     return;
   }
 
-  const filas = registros.map((r) => ({
+  const filas = data.map((r) => ({
     DNI: r.dni,
     Nombres: r.nombres,
     "Apellido paterno": r.apellido_paterno,
@@ -460,7 +534,7 @@ async function generarReporteExcel() {
     Fecha: r.asistencias_programadas?.fecha,
     "Hora inicio": r.asistencias_programadas?.hora_inicio,
     "Hora fin": r.asistencias_programadas?.hora_fin,
-    "Distancia metros": Math.round(r.distancia_metros),
+    "Distancia metros": Math.round(r.distancia_metros || 0),
     "Fecha registro": r.fecha_registro,
   }));
 
@@ -468,7 +542,11 @@ async function generarReporteExcel() {
   const libro = XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(libro, hoja, "Reporte Asistencia");
-  XLSX.writeFile(libro, "reporte_asistencia_docente.xlsx");
+
+  const info = data[0].asistencias_programadas;
+  const nombreArchivo = `reporte_${info?.tipo || "asistencia"}_${info?.fecha || ""}.xlsx`;
+
+  XLSX.writeFile(libro, nombreArchivo);
 
   mostrarToast("Reporte Excel generado correctamente.", "success");
 }
