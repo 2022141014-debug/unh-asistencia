@@ -1,0 +1,137 @@
+:root {
+  --azul-900: #062b55;
+  --azul-800: #0d3d76;
+  --azul-700: #155ca8;
+  --azul-100: #eaf3ff;
+
+  --gris-50: #f7faff;
+  --gris-100: #eef3f9;
+  --gris-200: #d7e2ef;
+  --gris-500: #64748b;
+  --gris-700: #334155;
+
+  --verde: #15803d;
+  --verde-bg: #dcfce7;
+
+  --rojo: #b91c1c;
+  --rojo-bg: #fee2e2;
+
+  --blanco: #ffffff;
+  --sombra: 0 18px 45px rgba(15, 23, 42, 0.08);
+  --radio: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--gris-100);
+  color: var(--azul-900);
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-weight: 800;
+  font-size: 15px;
+  color: #16365d;
+}
+
+input,
+select {
+  height: 56px;
+  border: 1px solid #cfe0f3;
+  border-radius: 18px;
+  padding: 0 18px;
+  font-size: 16px;
+  background: #fbfdff;
+  color: #0f2747;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--azul-700);
+  box-shadow: 0 0 0 4px rgba(21, 92, 168, 0.12);
+}
+
+.btn {
+  border: none;
+  border-radius: 18px;
+  height: 56px;
+  padding: 0 24px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn.primary {
+  background: #1f5c9d;
+  color: white;
+}
+
+.btn.secondary {
+  background: #e7f0fb;
+  color: #063b78;
+}
+
+.btn.danger {
+  background: var(--rojo-bg);
+  color: var(--rojo);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  max-width: 420px;
+  background: var(--azul-900);
+  color: white;
+  padding: 16px 20px;
+  border-radius: 18px;
+  box-shadow: var(--sombra);
+  display: none;
+  z-index: 9999;
+  font-weight: 700;
+}
+
+.toast.show {
+  display: block;
+}
+
+.toast.success {
+  background: var(--verde);
+}
+
+.toast.error {
+  background: var(--rojo);
+}
+
+.toast.warning {
+  background: #b45309;
+}

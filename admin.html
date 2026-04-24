@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administración | Asistencia Docente</title>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <main class="admin-layout">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">U</div>
+        <div>
+          <h1>UNH</h1>
+          <p>Asistencia Docente 2026</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <button class="menu-btn active" data-section="configuracion">Configuración</button>
+        <button class="menu-btn" data-section="programadas">Asistencias programadas</button>
+        <button class="menu-btn" data-section="resultados">Resultados</button>
+        <button class="menu-btn" data-section="reportes">Reportes</button>
+      </nav>
+
+      <p class="sidebar-footer">Panel administrativo institucional</p>
+    </aside>
+
+    <section class="content">
+
+      <header class="topbar">
+        <div>
+          <h2>Panel de Administración</h2>
+          <p>Gestión de asistencias por geolocalización</p>
+        </div>
+        <span class="admin-badge">Administrador</span>
+      </header>
+
+      <section class="stats">
+        <article class="stat-card">
+          <span>Tipo actual</span>
+          <strong id="statTipo">No definido</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Ubicación</span>
+          <strong id="statUbicacion">Sin capturar</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Radio</span>
+          <strong id="statRadio">0 m</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Horario</span>
+          <strong id="statHorario">No definido</strong>
+        </article>
+      </section>
+
+      <section id="configuracion" class="panel-section visible">
+        <div class="card">
+          <h3>Datos de la asistencia</h3>
+          <p class="section-desc">Define el tipo, lugar, rango y horario de asistencia.</p>
+
+          <form id="formProgramacion" class="form-grid">
+
+            <div class="form-group">
+              <label>Tipo de asistencia</label>
+              <select id="tipo" required>
+                <option value="">Seleccione</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Nombre del lugar</label>
+              <input id="nombreLugar" type="text" placeholder="Ejemplo: REUNIÓN DOCENTES UNH" required />
+            </div>
+
+            <div class="form-group">
+              <label>Fecha</label>
+              <input id="fecha" type="date" required />
+            </div>
+
+            <div class="form-group">
+              <label>Radio permitido (metros)</label>
+              <input id="radioMetros" type="number" value="100" min="10" required />
+            </div>
+
+            <div class="form-group">
+              <label>Hora de inicio</label>
+              <input id="horaInicio" type="time" required />
+            </div>
+
+            <div class="form-group">
+              <label>Hora de fin</label>
+              <input id="horaFin" type="time" required />
+            </div>
+
+            <div class="location-box">
+              <h4>Ubicación seleccionada</h4>
+
+              <div class="location-row">
+                <span>Latitud:</span>
+                <strong id="latitudTexto">Sin capturar</strong>
+              </div>
+
+              <div class="location-row">
+                <span>Longitud:</span>
+                <strong id="longitudTexto">Sin capturar</strong>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn secondary" id="btnMarcarUbicacion">
+                Marcar ubicación actual
+              </button>
+
+              <button type="submit" class="btn primary">
+                Guardar configuración
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </section>
+
+      <section id="programadas" class="panel-section">
+        <div class="card">
+          <h3>Asistencias programadas</h3>
+          <p class="section-desc">Historial de asistencias configuradas por el administrador.</p>
+          <div id="listaProgramadas" class="programadas-list"></div>
+        </div>
+      </section>
+
+      <section id="resultados" class="panel-section">
+        <div class="card">
+          <h3>Resultados de asistencia</h3>
+          <p class="section-desc">
+            Consulta el total de docentes registrados por departamento académico según fecha y tipo de asistencia.
+          </p>
+
+          <div class="form-grid report-grid">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input id="resultadoFecha" type="date" />
+            </div>
+
+            <div class="form-group">
+              <label>Tipo de asistencia</label>
+              <select id="resultadoTipo">
+                <option value="">Seleccione</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn primary" id="btnConsultarResultados">
+                Consultar resultados
+              </button>
+            </div>
+          </div>
+
+          <div class="results-summary">
+            <div class="result-total-card">
+              <span>Total de docentes registrados</span>
+              <strong id="resultadoTotal">0</strong>
+            </div>
+          </div>
+
+          <div class="department-dashboard">
+            <h4>Docentes registrados por departamento</h4>
+            <div id="dashboardResultados" class="department-grid">
+              <p class="empty-message">Seleccione una fecha y tipo de asistencia para visualizar resultados.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="reportes" class="panel-section">
+        <div class="card">
+          <h3>Reportes</h3>
+          <p class="section-desc">Genera reportes en Excel filtrando por fecha y tipo de asistencia.</p>
+
+          <div class="form-grid report-grid">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input id="reporteFecha" type="date" />
+            </div>
+
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="reporteTipo">
+                <option value="">Todos</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn primary" id="btnGenerarReporte">
+                Generar Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

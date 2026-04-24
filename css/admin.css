@@ -1,0 +1,397 @@
+.admin-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: linear-gradient(180deg, #0a3668, #164f91);
+  color: white;
+  padding: 28px 20px;
+  position: relative;
+}
+
+.brand {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 55px;
+}
+
+.brand-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.brand p {
+  margin: 4px 0 0;
+  opacity: 0.9;
+}
+
+.menu {
+  display: grid;
+  gap: 14px;
+}
+
+.menu-btn {
+  width: 100%;
+  text-align: left;
+  padding: 18px;
+  border-radius: 18px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.menu-btn.active,
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-footer {
+  position: absolute;
+  bottom: 20px;
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.content {
+  padding: 32px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 28px;
+}
+
+.topbar h2 {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1;
+}
+
+.topbar p {
+  margin: 12px 0 0;
+  color: var(--gris-500);
+  font-size: 18px;
+}
+
+.admin-badge {
+  background: var(--verde-bg);
+  color: var(--verde);
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: white;
+  padding: 26px;
+  border-radius: 24px;
+  box-shadow: var(--sombra);
+}
+
+.stat-card span {
+  color: var(--gris-500);
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 22px;
+}
+
+.card {
+  background: white;
+  padding: 28px;
+  border-radius: 28px;
+  box-shadow: var(--sombra);
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.section-desc {
+  color: var(--gris-500);
+  margin-bottom: 28px;
+}
+
+.panel-section {
+  display: none;
+}
+
+.panel-section.visible {
+  display: block;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.location-box {
+  grid-column: 1 / -1;
+  border: 1px dashed #b9d3f2;
+  background: #f6faff;
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.location-box h4 {
+  margin-top: 0;
+}
+
+.location-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #e0ebf7;
+  font-size: 18px;
+}
+
+.location-row:last-child {
+  border-bottom: none;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.programadas-list {
+  display: grid;
+  gap: 22px;
+}
+
+.programada-card {
+  border: 1px solid #dce8f6;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border-radius: 26px;
+  padding: 26px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.programada-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.programada-head h4 {
+  margin: 0;
+  font-size: 25px;
+  color: #062b55;
+}
+
+.programada-head p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.tipo-pill {
+  background: var(--azul-100);
+  color: var(--azul-800);
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+
+.programada-info {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.info-box {
+  background: #f7fbff;
+  border: 1px solid #ddeafa;
+  border-radius: 18px;
+  padding: 15px;
+}
+
+.info-box span {
+  color: var(--gris-500);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.info-box strong {
+  display: block;
+  margin-top: 8px;
+  color: #062b55;
+}
+
+.actions-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  border: none;
+  border-radius: 16px;
+  padding: 14px 24px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+}
+
+.btn-action.edit {
+  background: #e7f0fb;
+  color: #07437f;
+}
+
+.btn-action.delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.results-summary {
+  margin: 28px 0;
+}
+
+.result-total-card {
+  background: linear-gradient(135deg, #062b55, #1f5c9d);
+  color: white;
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+}
+
+.result-total-card span {
+  display: block;
+  font-size: 16px;
+  opacity: 0.9;
+  font-weight: 700;
+}
+
+.result-total-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 48px;
+  line-height: 1;
+}
+
+.department-dashboard {
+  background: #f8fbff;
+  border: 1px solid #dce8f6;
+  border-radius: 24px;
+  padding: 22px;
+  margin-top: 24px;
+}
+
+.department-dashboard h4 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  color: #062b55;
+}
+
+.department-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.department-card {
+  background: white;
+  border: 1px solid #dce8f6;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.department-card span {
+  font-weight: 800;
+  color: #173b63;
+  font-size: 14px;
+}
+
+.department-card strong {
+  background: #eaf3ff;
+  color: #0d3d76;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.empty-message {
+  padding: 18px;
+  border-radius: 18px;
+  background: #f8fbff;
+  color: #64748b;
+  font-weight: 700;
+  grid-column: 1 / -1;
+}
+
+.report-grid {
+  align-items: end;
+}
+
+@media (max-width: 1100px) {
+  .programada-info,
+  .department-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .stats,
+  .form-grid,
+  .programada-info,
+  .department-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar h2 {
+    font-size: 34px;
+  }
+}

@@ -1,0 +1,320 @@
+body.docente-body {
+  margin: 0;
+  background: #003866;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.phone-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.mobile-card {
+  width: 100%;
+  max-width: 420px;
+  background: #f5f8fc;
+  border-radius: 28px;
+  overflow: hidden;
+}
+
+/* HEADER */
+.mobile-header {
+  background: linear-gradient(135deg, #003866, #1f5c9d);
+  color: white;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 21px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.header-divider {
+  width: 2px;
+  height: 48px;
+  background: rgba(255,255,255,0.42);
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+/* TITULO */
+.title-section {
+  padding: 22px 16px 14px;
+}
+
+.title-section h2 {
+  margin: 0;
+  color: #003866;
+  font-size: 23px;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
+/* ESTADO */
+.status-card {
+  margin: 0 16px 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #eaf1f8;
+  text-align: center;
+}
+
+.status-card strong {
+  color: #003866;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.status-card p {
+  margin: 6px 0 0;
+  color: #52657b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-card.active {
+  background: #e6f6ec;
+  border: 1px solid #b8dfc7;
+}
+
+.status-card.active strong {
+  color: #166534;
+}
+
+.status-card.closed {
+  background: #fdecec;
+  border: 1px solid #efb8b8;
+}
+
+.status-card.closed strong {
+  color: #b91c1c;
+}
+
+.status-card.success {
+  background: #e6f6ec;
+  border: 1px solid #b8dfc7;
+}
+
+.status-card.success strong {
+  color: #166534;
+}
+
+/* TIMER */
+.timer-box {
+  margin: 0 16px 16px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #003866, #1f5c9d);
+  color: white;
+  text-align: center;
+}
+
+.timer-box span {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.timer-box strong {
+  display: block;
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+/* FORM */
+.mobile-form {
+  padding: 0 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobile-form label {
+  font-weight: 800;
+  color: #003866;
+}
+
+.mobile-form input,
+.mobile-form select {
+  height: 46px;
+  border-radius: 13px;
+  border: 1px solid #cfd9e6;
+  padding: 0 12px;
+  font-size: 15px;
+  outline: none;
+  background: white;
+}
+
+.mobile-form input:focus,
+.mobile-form select:focus {
+  border-color: #1f5c9d;
+  box-shadow: 0 0 0 3px rgba(31,92,157,0.14);
+}
+
+/* UBICACION */
+.location-status {
+  padding: 12px;
+  background: #fff3c9;
+  color: #7a5a00;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.location-status.ok {
+  background: #e6f6ec;
+  color: #166534;
+}
+
+.location-status.error {
+  background: #fdecec;
+  color: #b91c1c;
+}
+
+/* BOTONES GENERALES */
+.btn {
+  height: 46px;
+  border-radius: 13px;
+  border: none;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* BOTÓN PRINCIPAL (ENVIAR) */
+.btn.primary {
+  background: linear-gradient(135deg, #003866, #1f5c9d);
+  color: white;
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+}
+
+/* BOTÓN SECUNDARIO */
+.btn.secondary {
+  background: #e0e9f3;
+  color: #003866;
+}
+
+/* BOTÓN CANCELAR */
+.btn.cancel {
+  background: #fdecec;
+  color: #b91c1c;
+  border: 1px solid #efb8b8;
+}
+
+/* BOTÓN VERIFICAR UBICACIÓN (MEJORADO) */
+#btnVerificarUbicacion {
+  height: 48px;
+  border-radius: 14px;
+  border: none;
+
+  background: linear-gradient(135deg, #2f80ed, #1f5c9d);
+  color: white;
+
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  box-shadow: 0 6px 14px rgba(0, 56, 102, 0.25);
+  transition: all 0.25s ease;
+}
+
+#btnVerificarUbicacion:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 56, 102, 0.35);
+}
+
+#btnVerificarUbicacion:active {
+  transform: scale(0.97);
+}
+
+/* CUANDO YA VERIFICÓ */
+#btnVerificarUbicacion.success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+}
+
+/* DESHABILITADO */
+#btnVerificarUbicacion:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* DESACTIVADO GENERAL */
+.btn:disabled {
+  opacity: 0.5;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 18px;
+  background: #003866;
+  color: white;
+  padding: 14px;
+  border-radius: 14px;
+  text-align: center;
+  font-weight: 800;
+  display: none;
+  z-index: 9999;
+}
+
+.toast.show {
+  display: block;
+}
+
+.toast.success {
+  background: #166534;
+}
+
+.toast.error {
+  background: #b91c1c;
+}
+
+.toast.warning {
+  background: #b7791f;
+}
+
+/* RESPONSIVE */
+@media (max-width: 430px) {
+  .mobile-card {
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}

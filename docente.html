@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asistencia Docente | UNH</title>
+
+  <link rel="stylesheet" href="css/docente.css"/>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="docente-body">
+
+<main class="phone-shell">
+  <section class="mobile-card">
+
+    <header class="mobile-header">
+      <div class="logo-box">UNH</div>
+
+      <div class="header-divider"></div>
+
+      <div class="header-text">
+        <span>Unidad de Innovación Académica</span>
+        <span>Dirección de Gestión Académica</span>
+      </div>
+    </header>
+
+    <section class="title-section">
+      <h2>REGISTRO DE ASISTENCIA</h2>
+    </section>
+
+    <section class="status-card" id="estadoAsistencia">
+      <strong id="estadoTexto">Verificando...</strong>
+      <p id="descripcionAsistencia"></p>
+    </section>
+
+    <section class="timer-box">
+      <span>Tiempo restante</span>
+      <strong id="contador">00:00</strong>
+    </section>
+
+    <form id="formDocente" class="mobile-form">
+
+      <label>DNI</label>
+      <input id="dni" type="text" inputmode="numeric" maxlength="8" required>
+
+      <label>Nombres</label>
+      <input id="nombres" type="text" required>
+
+      <label>Apellido paterno</label>
+      <input id="apellidoPaterno" type="text" required>
+
+      <label>Apellido materno</label>
+      <input id="apellidoMaterno" type="text" required>
+
+      <label>Celular</label>
+      <input id="celular" type="text" inputmode="numeric" maxlength="9" required>
+
+      <label>Correo</label>
+      <input id="correo" type="email">
+
+      <label>Departamento académico</label>
+      <select id="departamento" required>
+        <option value="">Seleccione</option>
+        <option>DA ADMINISTRACIÓN</option>
+        <option>DA CIENCIAS AGRARIAS</option>
+        <option>DA CIENCIAS DE LA SALUD</option>
+        <option>DA CIENCIAS Y HUMANIDADES</option>
+        <option>DA CONTABILIDAD</option>
+        <option>DA DERECHO</option>
+        <option>DA ECONOMÍA</option>
+        <option>DA ELECTRÓNICA</option>
+        <option>DA ENFERMERÍA</option>
+        <option>DA INGENIERÍA AGROINDUSTRIAL</option>
+        <option>DA INGENIERÍA AMBIENTAL</option>
+        <option>DA INGENIERÍA CIVIL – HUANCAVELICA</option>
+        <option>DA INGENIERÍA CIVIL – LIRCAY</option>
+        <option>DA MINAS</option>
+        <option>DA PEDAGOGÍA</option>
+        <option>DA SISTEMAS</option>
+        <option>DA ZOOTECNIA</option>
+      </select>
+
+      <div class="location-status" id="ubicacionEstado">
+        Verifique su ubicación
+      </div>
+
+      <button type="button" class="btn secondary" id="btnVerificarUbicacion">
+        Verificar ubicación
+      </button>
+
+      <button type="submit" class="btn primary" id="btnEnviar" disabled>
+        Enviar asistencia
+      </button>
+
+      <button type="button" class="btn cancel" id="btnAnular" hidden>
+        Anular asistencia
+      </button>
+
+    </form>
+
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/supabase.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/docente.js"></script>
+
+</body>
+</html>
