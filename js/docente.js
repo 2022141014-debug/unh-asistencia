@@ -3,8 +3,11 @@ let ubicacionDocente = null;
 let distanciaCalculada = null;
 let intervaloContador = null;
 let registroGuardadoId = null;
+let deviceId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  deviceId = obtenerDeviceId();
+
   cargarAsistenciaDisponible();
 
   document.getElementById("celular").addEventListener("input", limpiarCelular);
@@ -13,6 +16,17 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("formDocente").addEventListener("submit", enviarAsistencia);
   document.getElementById("btnAnular").addEventListener("click", anularAsistencia);
 });
+
+function obtenerDeviceId() {
+  let id = localStorage.getItem("device_id_asistencia_unh");
+
+  if (!id) {
+    id = "device_" + crypto.randomUUID();
+    localStorage.setItem("device_id_asistencia_unh", id);
+  }
+
+  return id;
+}
 
 function limpiarCelular() {
   const celular = document.getElementById("celular");
@@ -74,9 +88,40 @@ async function cargarAsistenciaDisponible() {
 
   asistenciaActiva = activa;
 
+  await verificarRegistroDelDispositivo();
+
+  iniciarContador(activa);
+}
+
+async function verificarRegistroDelDispositivo() {
+  const { data, error } = await supabaseClient
+    .from("registros_asistencia")
+    .select("id")
+    .eq("asistencia_programada_id", asistenciaActiva.id)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    mostrarToast("No se pudo verificar el registro del dispositivo.", "error");
+    bloquearTodo();
+    return;
+  }
+
+  if (data) {
+    registroGuardadoId = data.id;
+    mostrarEstadoExito("Este dispositivo ya registró asistencia");
+    bloquearCamposDespuesDeEnviar();
+
+    if (asistenciaEstaActiva(asistenciaActiva)) {
+      mostrarBotonAnular();
+    }
+
+    return;
+  }
+
   mostrarEstadoActivo("Asistencia habilitada");
   desbloquearFormulario();
-  iniciarContador(activa);
 }
 
 function mostrarEstadoActivo(titulo) {
@@ -206,18 +251,8 @@ function validarFormularioDocente() {
     return false;
   }
 
-  if (!/^\d+$/.test(celular)) {
-    mostrarToast("El celular solo debe contener números.", "error");
-    return false;
-  }
-
-  if (celular.length < 9) {
-    mostrarToast("El número de celular está incompleto. Debe tener 9 dígitos.", "error");
-    return false;
-  }
-
-  if (celular.length > 9) {
-    mostrarToast("El número de celular excede los 9 dígitos permitidos.", "error");
+  if (!/^\d{9}$/.test(celular)) {
+    mostrarToast("El celular debe contener exactamente 9 números.", "error");
     return false;
   }
 
@@ -238,6 +273,13 @@ async function enviarAsistencia(evento) {
     return;
   }
 
+  await verificarRegistroDelDispositivo();
+
+  if (registroGuardadoId) {
+    mostrarToast("Este dispositivo ya registró asistencia.", "warning");
+    return;
+  }
+
   if (!validarFormularioDocente()) return;
 
   if (!ubicacionDocente || distanciaCalculada === null) {
@@ -252,6 +294,7 @@ async function enviarAsistencia(evento) {
 
   const registro = {
     asistencia_programada_id: asistenciaActiva.id,
+    device_id: deviceId,
     dni: document.getElementById("dni").value.trim(),
     nombres: document.getElementById("nombres").value.trim(),
     apellido_paterno: document.getElementById("apellidoPaterno").value.trim(),
@@ -274,15 +317,8 @@ async function enviarAsistencia(evento) {
     console.error(error);
 
     if (error.code === "23505") {
-      await cargarRegistroExistente(registro.dni);
-      mostrarToast("Usted ya registró su asistencia.", "warning");
-      bloquearCamposDespuesDeEnviar();
-
-      if (asistenciaEstaActiva(asistenciaActiva)) {
-        mostrarBotonAnular();
-      }
-
-      mostrarEstadoExito("Asistencia ya registrada");
+      await verificarRegistroDelDispositivo();
+      mostrarToast("Este dispositivo ya registró asistencia.", "warning");
       return;
     }
 
@@ -298,21 +334,6 @@ async function enviarAsistencia(evento) {
 
   if (asistenciaEstaActiva(asistenciaActiva)) {
     mostrarBotonAnular();
-  }
-}
-
-async function cargarRegistroExistente(dni) {
-  if (!asistenciaActiva || !dni) return;
-
-  const { data, error } = await supabaseClient
-    .from("registros_asistencia")
-    .select("id")
-    .eq("asistencia_programada_id", asistenciaActiva.id)
-    .eq("dni", dni)
-    .maybeSingle();
-
-  if (!error && data) {
-    registroGuardadoId = data.id;
   }
 }
 
@@ -337,7 +358,8 @@ async function anularAsistencia() {
   const { error } = await supabaseClient
     .from("registros_asistencia")
     .delete()
-    .eq("id", registroGuardadoId);
+    .eq("id", registroGuardadoId)
+    .eq("device_id", deviceId);
 
   if (error) {
     console.error(error);
