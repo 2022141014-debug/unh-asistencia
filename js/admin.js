@@ -1,7 +1,7 @@
 let ubicacionAdmin = null;
 let asistenciaEditandoId = null;
 
-const CLAVE_ELIMINACION = "12345";
+const CLAVE_ELIMINACION = "InnovaUNH2026";
 
 document.addEventListener("DOMContentLoaded", () => {
   inicializarMenu();

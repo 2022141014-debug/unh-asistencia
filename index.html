@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNH | Sistema de Asistencia</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #003866;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 430px;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 38px 28px 34px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .logo {
+      font-size: 42px;
+      font-weight: 900;
+      color: #003866;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .line {
+      width: 70px;
+      height: 4px;
+      background: #1f5c9d;
+      border-radius: 20px;
+      margin: 0 auto 28px;
+    }
+
+    .subtitle {
+      color: #40546d;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.45;
+      margin-bottom: 34px;
+    }
+
+    .buttons {
+      display: grid;
+      gap: 16px;
+      width: 100%;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 58px;
+      border-radius: 18px;
+      text-decoration: none;
+      font-size: 17px;
+      font-weight: 900;
+      transition: 0.2s ease;
+    }
+
+    .btn-docente {
+      background: linear-gradient(135deg, #003866, #1f5c9d);
+      color: #ffffff;
+      box-shadow: 0 10px 22px rgba(0, 56, 102, 0.22);
+    }
+
+    .btn-admin {
+      background: #e7eef7;
+      color: #003866;
+      border: 1px solid #c9d8e8;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .footer {
+      margin-top: 30px;
+      color: #7b8ba3;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 34px 22px 30px;
+        border-radius: 24px;
+      }
+
+      .logo {
+        font-size: 38px;
+      }
+
+      .btn {
+        min-height: 56px;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <div class="logo">UNH</div>
+    <div class="line"></div>
+
+    <p class="subtitle">
+      Sistema de registro de asistencia docente
+    </p>
+
+    <div class="buttons">
+      <a href="docente.html" class="btn btn-docente">
+        Acceso Docente
+      </a>
+
+      <a href="admin.html" class="btn btn-admin">
+        Panel Administrador
+      </a>
+    </div>
+
+    <div class="footer">
+      2026 © Universidad Nacional
+    </div>
+  </main>
+</body>
+</html>
