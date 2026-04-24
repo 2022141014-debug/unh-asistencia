@@ -5,8 +5,8 @@ let intervaloContador = null;
 let registroGuardadoId = null;
 let deviceId = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  deviceId = obtenerDeviceId();
+document.addEventListener("DOMContentLoaded", async () => {
+  deviceId = await obtenerDeviceId();
 
   cargarAsistenciaDisponible();
 
@@ -17,15 +17,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnAnular").addEventListener("click", anularAsistencia);
 });
 
-function obtenerDeviceId() {
-  let id = localStorage.getItem("device_id_asistencia_unh");
+async function obtenerDeviceId() {
+  const datosEquipo = [
+    navigator.userAgent,
+    navigator.platform,
+    navigator.language,
+    screen.width,
+    screen.height,
+    screen.colorDepth,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+    navigator.hardwareConcurrency || "",
+    navigator.deviceMemory || "",
+    navigator.maxTouchPoints || ""
+  ].join("|");
 
-  if (!id) {
-    id = "device_" + crypto.randomUUID();
-    localStorage.setItem("device_id_asistencia_unh", id);
+  if (crypto && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(datosEquipo);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+
+    return Array.from(new Uint8Array(hash))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
   }
 
-  return id;
+  return btoa(datosEquipo).replace(/[^a-zA-Z0-9]/g, "");
 }
 
 function limpiarCelular() {
@@ -88,12 +104,24 @@ async function cargarAsistenciaDisponible() {
 
   asistenciaActiva = activa;
 
-  await verificarRegistroDelDispositivo();
+  const registro = await buscarRegistroDelDispositivo();
+
+  if (registro) {
+    registroGuardadoId = registro.id;
+    mostrarEstadoExito("Este dispositivo ya registró asistencia");
+    bloquearCamposDespuesDeEnviar();
+    mostrarBotonAnular();
+  } else {
+    mostrarEstadoActivo("Asistencia habilitada");
+    desbloquearFormulario();
+  }
 
   iniciarContador(activa);
 }
 
-async function verificarRegistroDelDispositivo() {
+async function buscarRegistroDelDispositivo() {
+  if (!asistenciaActiva || !deviceId) return null;
+
   const { data, error } = await supabaseClient
     .from("registros_asistencia")
     .select("id")
@@ -103,25 +131,10 @@ async function verificarRegistroDelDispositivo() {
 
   if (error) {
     console.error(error);
-    mostrarToast("No se pudo verificar el registro del dispositivo.", "error");
-    bloquearTodo();
-    return;
+    return null;
   }
 
-  if (data) {
-    registroGuardadoId = data.id;
-    mostrarEstadoExito("Este dispositivo ya registró asistencia");
-    bloquearCamposDespuesDeEnviar();
-
-    if (asistenciaEstaActiva(asistenciaActiva)) {
-      mostrarBotonAnular();
-    }
-
-    return;
-  }
-
-  mostrarEstadoActivo("Asistencia habilitada");
-  desbloquearFormulario();
+  return data;
 }
 
 function mostrarEstadoActivo(titulo) {
@@ -262,6 +275,17 @@ function validarFormularioDocente() {
 async function enviarAsistencia(evento) {
   evento.preventDefault();
 
+  const registroExistente = await buscarRegistroDelDispositivo();
+
+  if (registroExistente) {
+    registroGuardadoId = registroExistente.id;
+    mostrarEstadoExito("Este dispositivo ya registró asistencia");
+    bloquearCamposDespuesDeEnviar();
+    mostrarBotonAnular();
+    mostrarToast("Este dispositivo ya registró asistencia.", "warning");
+    return;
+  }
+
   if (!asistenciaActiva) {
     mostrarToast("No hay asistencia activa.", "error");
     return;
@@ -270,13 +294,6 @@ async function enviarAsistencia(evento) {
   if (!asistenciaEstaActiva(asistenciaActiva)) {
     mostrarToast("El tiempo de asistencia ya terminó.", "error");
     bloquearTodo();
-    return;
-  }
-
-  await verificarRegistroDelDispositivo();
-
-  if (registroGuardadoId) {
-    mostrarToast("Este dispositivo ya registró asistencia.", "warning");
     return;
   }
 
@@ -317,7 +334,12 @@ async function enviarAsistencia(evento) {
     console.error(error);
 
     if (error.code === "23505") {
-      await verificarRegistroDelDispositivo();
+      const existente = await buscarRegistroDelDispositivo();
+      if (existente) registroGuardadoId = existente.id;
+
+      mostrarEstadoExito("Este dispositivo ya registró asistencia");
+      bloquearCamposDespuesDeEnviar();
+      mostrarBotonAnular();
       mostrarToast("Este dispositivo ya registró asistencia.", "warning");
       return;
     }
@@ -331,13 +353,15 @@ async function enviarAsistencia(evento) {
   mostrarToast("Asistencia registrada correctamente.", "success");
   mostrarEstadoExito("Asistencia registrada");
   bloquearCamposDespuesDeEnviar();
-
-  if (asistenciaEstaActiva(asistenciaActiva)) {
-    mostrarBotonAnular();
-  }
+  mostrarBotonAnular();
 }
 
 async function anularAsistencia() {
+  if (!registroGuardadoId) {
+    const registro = await buscarRegistroDelDispositivo();
+    if (registro) registroGuardadoId = registro.id;
+  }
+
   if (!registroGuardadoId) {
     mostrarToast("No se encontró un registro para anular.", "error");
     return;
