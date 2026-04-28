@@ -144,6 +144,31 @@ body.docente-body {
   font-weight: 900;
 }
 
+/* AVISO CONSTANCIA */
+.certificate-notice {
+  margin: 0 16px 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff8d7;
+  border: 1px solid #facc15;
+  color: #6b4e00;
+  text-align: center;
+}
+
+.certificate-notice strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.certificate-notice p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 /* FORM */
 .mobile-form {
   padding: 0 16px 22px;

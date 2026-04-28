@@ -109,10 +109,12 @@ async function cargarAsistenciaDisponible() {
   if (registro) {
     registroGuardadoId = registro.id;
     mostrarEstadoExito("Este dispositivo ya registró asistencia");
+    mostrarAvisoConstancia();
     bloquearCamposDespuesDeEnviar();
     mostrarBotonAnular();
   } else {
     mostrarEstadoActivo("Asistencia habilitada");
+    ocultarAvisoConstancia();
     desbloquearFormulario();
   }
 
@@ -157,6 +159,22 @@ function mostrarEstadoExito(titulo) {
   card.className = "status-card success";
   document.getElementById("estadoTexto").textContent = titulo;
   document.getElementById("descripcionAsistencia").textContent = "";
+}
+
+function mostrarAvisoConstancia() {
+  const aviso = document.getElementById("avisoConstancia");
+
+  if (aviso) {
+    aviso.hidden = false;
+  }
+}
+
+function ocultarAvisoConstancia() {
+  const aviso = document.getElementById("avisoConstancia");
+
+  if (aviso) {
+    aviso.hidden = true;
+  }
 }
 
 function iniciarContador(asistencia) {
@@ -280,6 +298,7 @@ async function enviarAsistencia(evento) {
   if (registroExistente) {
     registroGuardadoId = registroExistente.id;
     mostrarEstadoExito("Este dispositivo ya registró asistencia");
+    mostrarAvisoConstancia();
     bloquearCamposDespuesDeEnviar();
     mostrarBotonAnular();
     mostrarToast("Este dispositivo ya registró asistencia.", "warning");
@@ -317,7 +336,6 @@ async function enviarAsistencia(evento) {
     apellido_paterno: document.getElementById("apellidoPaterno").value.trim(),
     apellido_materno: document.getElementById("apellidoMaterno").value.trim(),
     celular: document.getElementById("celular").value.trim(),
-    correo: document.getElementById("correo").value.trim(),
     departamento: document.getElementById("departamento").value,
     latitud_docente: ubicacionDocente.latitud,
     longitud_docente: ubicacionDocente.longitud,
@@ -338,6 +356,7 @@ async function enviarAsistencia(evento) {
       if (existente) registroGuardadoId = existente.id;
 
       mostrarEstadoExito("Este dispositivo ya registró asistencia");
+      mostrarAvisoConstancia();
       bloquearCamposDespuesDeEnviar();
       mostrarBotonAnular();
       mostrarToast("Este dispositivo ya registró asistencia.", "warning");
@@ -352,6 +371,7 @@ async function enviarAsistencia(evento) {
 
   mostrarToast("Asistencia registrada correctamente.", "success");
   mostrarEstadoExito("Asistencia registrada");
+  mostrarAvisoConstancia();
   bloquearCamposDespuesDeEnviar();
   mostrarBotonAnular();
 }
@@ -399,6 +419,7 @@ async function anularAsistencia() {
   document.getElementById("ubicacionEstado").textContent = "Verifique su ubicación";
 
   ocultarBotonAnular();
+  ocultarAvisoConstancia();
   desbloquearFormulario();
   mostrarEstadoActivo("Asistencia habilitada");
 

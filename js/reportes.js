@@ -1,49 +1,16 @@
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("btnOpcionDia")?.addEventListener("click", () => {
-    cambiarOpcionReporte("dia");
-  });
+document.getElementById("tabDia").onclick = () => cambiarPanel("dia");
+document.getElementById("tabGeneral").onclick = () => cambiarPanel("general");
 
-  document.getElementById("btnOpcionGeneral")?.addEventListener("click", () => {
-    cambiarOpcionReporte("general");
-  });
+function cambiarPanel(tipo) {
+  document.getElementById("panelDia").classList.toggle("active", tipo === "dia");
+  document.getElementById("panelGeneral").classList.toggle("active", tipo === "general");
 
-  document.getElementById("btnReporteEntrada")?.addEventListener("click", () => {
-    generarReportePorDia("entrada");
-  });
-
-  document.getElementById("btnReporteSalida")?.addEventListener("click", () => {
-    generarReportePorDia("salida");
-  });
-
-  document.getElementById("btnReporteDiaGeneral")?.addEventListener("click", () => {
-    generarReporteGeneralDelDia();
-  });
-
-  document.getElementById("btnDescargarGeneral")?.addEventListener("click", generarReporteGeneral);
-});
-
-function cambiarOpcionReporte(tipo) {
-  const btnDia = document.getElementById("btnOpcionDia");
-  const btnGeneral = document.getElementById("btnOpcionGeneral");
-  const seccionDia = document.getElementById("seccionDia");
-  const seccionGeneral = document.getElementById("seccionGeneral");
-
-  btnDia.classList.remove("active");
-  btnGeneral.classList.remove("active");
-  seccionDia.classList.remove("visible");
-  seccionGeneral.classList.remove("visible");
-
-  if (tipo === "dia") {
-    btnDia.classList.add("active");
-    seccionDia.classList.add("visible");
-  } else {
-    btnGeneral.classList.add("active");
-    seccionGeneral.classList.add("visible");
-  }
+  document.getElementById("tabDia").classList.toggle("active", tipo === "dia");
+  document.getElementById("tabGeneral").classList.toggle("active", tipo === "general");
 }
 
-async function generarReportePorDia(tipoSeleccionado) {
-  const fecha = document.getElementById("fechaReporteDia").value;
+async function reporteDia(tipo) {
+  const fecha = document.getElementById("fechaDia").value;
 
   if (!fecha) {
     mostrarToast("Seleccione una fecha.", "warning");
@@ -52,11 +19,16 @@ async function generarReportePorDia(tipoSeleccionado) {
 
   mostrarToast("Generando reporte...", "warning");
 
-  const { data: asistencias, error } = await supabaseClient
+  let consulta = supabaseClient
     .from("asistencias_programadas")
     .select("id, tipo, fecha")
-    .eq("fecha", fecha)
-    .eq("tipo", tipoSeleccionado);
+    .eq("fecha", fecha);
+
+  if (tipo !== "general") {
+    consulta = consulta.eq("tipo", tipo);
+  }
+
+  const { data: asistencias, error } = await consulta;
 
   if (error) {
     console.error(error);
@@ -69,309 +41,251 @@ async function generarReportePorDia(tipoSeleccionado) {
     return;
   }
 
-  const nombreArchivo =
-    tipoSeleccionado === "entrada"
-      ? `reporte_entrada_${fecha}.xlsx`
-      : `reporte_salida_${fecha}.xlsx`;
+  const ids = asistencias.map((a) => a.id);
 
-  await generarExcelEntradaSalida(asistencias, nombreArchivo);
-}
-
-async function generarReporteGeneralDelDia() {
-  const fecha = document.getElementById("fechaReporteDia").value;
-
-  if (!fecha) {
-    mostrarToast("Seleccione una fecha.", "warning");
-    return;
-  }
-
-  mostrarToast("Generando reporte general del día...", "warning");
-
-  const { data: asistencias, error } = await supabaseClient
-    .from("asistencias_programadas")
-    .select("id, tipo, fecha")
-    .eq("fecha", fecha);
-
-  if (error) {
-    console.error(error);
-    mostrarToast("Error al consultar asistencias programadas.", "error");
-    return;
-  }
-
-  if (!asistencias || asistencias.length === 0) {
-    mostrarToast("No hay asistencias programadas para esa fecha.", "warning");
-    return;
-  }
-
-  await generarExcelGeneralDia(
-    asistencias,
-    `reporte_general_dia_${fecha}.xlsx`
-  );
-}
-
-async function generarReporteGeneral() {
-  mostrarToast("Generando reporte general...", "warning");
-
-  const { data: asistencias, error } = await supabaseClient
-    .from("asistencias_programadas")
-    .select("id, tipo");
-
-  if (error) {
-    console.error(error);
-    mostrarToast("Error al consultar asistencias programadas.", "error");
-    return;
-  }
-
-  if (!asistencias || asistencias.length === 0) {
-    mostrarToast("No hay asistencias programadas.", "warning");
-    return;
-  }
-
-  await generarExcelEntradaSalida(
-    asistencias,
-    "reporte_general_todos_los_dias.xlsx"
-  );
-}
-
-async function generarExcelEntradaSalida(asistencias, nombreArchivo) {
-  if (!validarDependencias()) return;
-
-  const idsAsistencias = asistencias.map((a) => a.id);
-
-  const tipoPorAsistencia = {};
-  const totalProgramadasPorTipo = {
-    entrada: 0,
-    salida: 0,
-  };
-
-  asistencias.forEach((asistencia) => {
-    const tipo = limpiarTexto(asistencia.tipo).toLowerCase();
-
-    tipoPorAsistencia[asistencia.id] = tipo;
-
-    if (tipo === "entrada" || tipo === "salida") {
-      totalProgramadasPorTipo[tipo]++;
-    }
-  });
-
-  const { data: registros, error } = await supabaseClient
+  const { data: registros, error: errorRegistros } = await supabaseClient
     .from("registros_asistencia")
     .select(`
       dni,
-      correo,
       nombres,
       apellido_paterno,
       apellido_materno,
       departamento,
+      correo,
       asistencia_programada_id
     `)
-    .in("asistencia_programada_id", idsAsistencias);
+    .in("asistencia_programada_id", ids);
 
-  if (error) {
-    console.error(error);
-    mostrarToast("Error al consultar registros de asistencia.", "error");
+  if (errorRegistros) {
+    console.error(errorRegistros);
+    mostrarToast("Error al consultar registros.", "error");
     return;
   }
 
   if (!registros || registros.length === 0) {
-    mostrarToast("No existen registros de asistencia para este reporte.", "warning");
+    mostrarToast("No existen registros para este reporte.", "warning");
     return;
   }
 
-  const docentes = {};
+  if (tipo === "general") {
+    generarExcelGeneralDia(asistencias, registros, fecha);
+  } else {
+    generarExcelEntradaSalida(asistencias, registros, tipo, fecha);
+  }
+}
 
-  registros.forEach((registro) => {
-    const dni = limpiarTexto(registro.dni);
-    const tipo = tipoPorAsistencia[registro.asistencia_programada_id];
+function generarExcelEntradaSalida(asistencias, registros, tipo, fecha) {
+  const totalProgramadas = asistencias.length;
+  const mapa = {};
 
-    if (!dni || !tipo) return;
+  registros.forEach((r) => {
+    const dni = limpiarTexto(r.dni);
+    if (!dni) return;
 
-    const clave = `${dni}_${tipo}`;
-
-    if (!docentes[clave]) {
-      docentes[clave] = {
-        tipo,
-        departamento: limpiarTexto(registro.departamento),
+    if (!mapa[dni]) {
+      mapa[dni] = {
+        tipo: normalizarTipo(tipo),
+        departamento: mayuscula(r.departamento),
         dni,
-        correo: limpiarTexto(registro.correo),
-        apellido_paterno: limpiarTexto(registro.apellido_paterno),
-        apellido_materno: limpiarTexto(registro.apellido_materno),
-        nombres: limpiarTexto(registro.nombres),
+        apellido_paterno: mayuscula(r.apellido_paterno),
+        apellido_materno: mayuscula(r.apellido_materno),
+        nombres: mayuscula(r.nombres),
         asistenciasMarcadas: new Set(),
       };
     }
 
-    if (!docentes[clave].correo && registro.correo) {
-      docentes[clave].correo = limpiarTexto(registro.correo);
-    }
-
-    if (!docentes[clave].departamento && registro.departamento) {
-      docentes[clave].departamento = limpiarTexto(registro.departamento);
-    }
-
-    docentes[clave].asistenciasMarcadas.add(registro.asistencia_programada_id);
+    mapa[dni].asistenciasMarcadas.add(r.asistencia_programada_id);
   });
 
-  const filas = Object.values(docentes)
-    .sort((a, b) => {
-      const tipoComparado = a.tipo.localeCompare(b.tipo);
-      if (tipoComparado !== 0) return tipoComparado;
+  const filas = Object.values(mapa).map((d) => {
+    const marcadas = d.asistenciasMarcadas.size;
+    const porcentaje = totalProgramadas > 0 ? (marcadas / totalProgramadas) * 100 : 0;
 
-      return (a.apellido_paterno || "").localeCompare(b.apellido_paterno || "");
-    })
-    .map((docente) => {
-      const totalMarcadas = docente.asistenciasMarcadas.size;
-      const totalProgramadas = totalProgramadasPorTipo[docente.tipo] || 0;
-      const porcentaje = totalProgramadas > 0
-        ? (totalMarcadas / totalProgramadas) * 100
-        : 0;
+    return {
+      "Tipo": d.tipo,
+      "Departamento académico": d.departamento,
+      "DNI": d.dni,
+      "Apellido paterno": d.apellido_paterno,
+      "Apellido materno": d.apellido_materno,
+      "Nombre": d.nombres,
+      "Asistencias registradas": `${marcadas}/${totalProgramadas}`,
+      "Porcentaje": `${porcentaje.toFixed(2)}%`,
+    };
+  });
 
-      return {
-        "Tipo": normalizarTipo(docente.tipo),
-        "Departamento académico": docente.departamento,
-        "DNI": docente.dni,
-        "Correo electrónico": docente.correo,
-        "Apellido paterno": docente.apellido_paterno,
-        "Apellido materno": docente.apellido_materno,
-        "Nombre": docente.nombres,
-        "Asistencias registradas": `${totalMarcadas}/${totalProgramadas}`,
-        "Porcentaje de asistencia": `${porcentaje.toFixed(2)}%`,
-      };
-    });
-
-  exportarExcel(filas, nombreArchivo, [
-    { wch: 14 },
-    { wch: 30 },
-    { wch: 14 },
-    { wch: 36 },
-    { wch: 24 },
-    { wch: 24 },
-    { wch: 30 },
-    { wch: 24 },
-    { wch: 26 },
-  ]);
+  exportarExcel(filas, `reporte_${tipo}_${fecha}.xlsx`);
 }
 
-async function generarExcelGeneralDia(asistencias, nombreArchivo) {
-  if (!validarDependencias()) return;
+function generarExcelGeneralDia(asistencias, registros, fecha) {
+  const tipoPorId = {};
+  let totalEntrada = 0;
+  let totalSalida = 0;
 
-  const idsAsistencias = asistencias.map((a) => a.id);
+  asistencias.forEach((a) => {
+    const tipo = limpiarTexto(a.tipo).toLowerCase();
+    tipoPorId[a.id] = tipo;
 
-  const tipoPorAsistencia = {};
-  const totalEntrada = asistencias.filter((a) => limpiarTexto(a.tipo).toLowerCase() === "entrada").length;
-  const totalSalida = asistencias.filter((a) => limpiarTexto(a.tipo).toLowerCase() === "salida").length;
-  const totalProgramadas = asistencias.length;
-
-  asistencias.forEach((asistencia) => {
-    tipoPorAsistencia[asistencia.id] = limpiarTexto(asistencia.tipo).toLowerCase();
+    if (tipo === "entrada") totalEntrada++;
+    if (tipo === "salida") totalSalida++;
   });
 
-  const { data: registros, error } = await supabaseClient
+  const totalProgramadas = asistencias.length;
+  const mapa = {};
+
+  registros.forEach((r) => {
+    const dni = limpiarTexto(r.dni);
+    const tipo = tipoPorId[r.asistencia_programada_id];
+
+    if (!dni || !tipo) return;
+
+    if (!mapa[dni]) {
+      mapa[dni] = {
+        departamento: mayuscula(r.departamento),
+        dni,
+        apellido_paterno: mayuscula(r.apellido_paterno),
+        apellido_materno: mayuscula(r.apellido_materno),
+        nombres: mayuscula(r.nombres),
+        entrada: new Set(),
+        salida: new Set(),
+      };
+    }
+
+    if (tipo === "entrada") {
+      mapa[dni].entrada.add(r.asistencia_programada_id);
+    }
+
+    if (tipo === "salida") {
+      mapa[dni].salida.add(r.asistencia_programada_id);
+    }
+  });
+
+  const filas = Object.values(mapa).map((d) => {
+    const entradaMarcada = d.entrada.size;
+    const salidaMarcada = d.salida.size;
+    const totalMarcado = entradaMarcada + salidaMarcada;
+    const porcentaje = totalProgramadas > 0 ? (totalMarcado / totalProgramadas) * 100 : 0;
+
+    return {
+      "Departamento académico": d.departamento,
+      "DNI": d.dni,
+      "Apellido paterno": d.apellido_paterno,
+      "Apellido materno": d.apellido_materno,
+      "Nombre": d.nombres,
+      "Entrada": `${entradaMarcada}/${totalEntrada}`,
+      "Salida": `${salidaMarcada}/${totalSalida}`,
+      "Porcentaje": `${porcentaje.toFixed(2)}%`,
+    };
+  });
+
+  exportarExcel(filas, `reporte_general_dia_${fecha}.xlsx`);
+}
+
+async function reporteRango() {
+  const inicio = document.getElementById("fechaInicio").value;
+  const fin = document.getElementById("fechaFin").value;
+
+  if (!inicio || !fin) {
+    mostrarToast("Seleccione fecha inicial y fecha final.", "warning");
+    return;
+  }
+
+  if (inicio > fin) {
+    mostrarToast("La fecha inicial no puede ser mayor que la fecha final.", "warning");
+    return;
+  }
+
+  mostrarToast("Generando reporte general...", "warning");
+
+  const { data: asistencias, error } = await supabaseClient
+    .from("asistencias_programadas")
+    .select("id, tipo, fecha")
+    .gte("fecha", inicio)
+    .lte("fecha", fin);
+
+  if (error) {
+    console.error(error);
+    mostrarToast("Error al consultar asistencias programadas.", "error");
+    return;
+  }
+
+  if (!asistencias || asistencias.length === 0) {
+    mostrarToast("No hay asistencias programadas en ese rango.", "warning");
+    return;
+  }
+
+  const ids = asistencias.map((a) => a.id);
+
+  const { data: registros, error: errorRegistros } = await supabaseClient
     .from("registros_asistencia")
     .select(`
       dni,
-      correo,
       nombres,
       apellido_paterno,
       apellido_materno,
       departamento,
+      correo,
       asistencia_programada_id
     `)
-    .in("asistencia_programada_id", idsAsistencias);
+    .in("asistencia_programada_id", ids);
 
-  if (error) {
-    console.error(error);
-    mostrarToast("Error al consultar registros de asistencia.", "error");
+  if (errorRegistros) {
+    console.error(errorRegistros);
+    mostrarToast("Error al consultar registros.", "error");
     return;
   }
 
   if (!registros || registros.length === 0) {
-    mostrarToast("No existen registros de asistencia para este reporte.", "warning");
+    mostrarToast("No existen registros para ese rango.", "warning");
     return;
   }
 
-  const docentes = {};
+  const totalProgramadas = asistencias.length;
+  const mapa = {};
 
-  registros.forEach((registro) => {
-    const dni = limpiarTexto(registro.dni);
-    const tipo = tipoPorAsistencia[registro.asistencia_programada_id];
+  registros.forEach((r) => {
+    const dni = limpiarTexto(r.dni);
+    if (!dni) return;
 
-    if (!dni || !tipo) return;
-
-    if (!docentes[dni]) {
-      docentes[dni] = {
+    if (!mapa[dni]) {
+      mapa[dni] = {
+        departamento: mayuscula(r.departamento),
         dni,
-        departamento: limpiarTexto(registro.departamento),
-        apellido_paterno: limpiarTexto(registro.apellido_paterno),
-        apellido_materno: limpiarTexto(registro.apellido_materno),
-        correo: limpiarTexto(registro.correo),
-        entradaMarcadas: new Set(),
-        salidaMarcadas: new Set(),
+        apellido_paterno: mayuscula(r.apellido_paterno),
+        apellido_materno: mayuscula(r.apellido_materno),
+        nombres: mayuscula(r.nombres),
+        asistenciasMarcadas: new Set(),
       };
     }
 
-    if (!docentes[dni].correo && registro.correo) {
-      docentes[dni].correo = limpiarTexto(registro.correo);
-    }
-
-    if (!docentes[dni].departamento && registro.departamento) {
-      docentes[dni].departamento = limpiarTexto(registro.departamento);
-    }
-
-    if (tipo === "entrada") {
-      docentes[dni].entradaMarcadas.add(registro.asistencia_programada_id);
-    }
-
-    if (tipo === "salida") {
-      docentes[dni].salidaMarcadas.add(registro.asistencia_programada_id);
-    }
+    mapa[dni].asistenciasMarcadas.add(r.asistencia_programada_id);
   });
 
-  const filas = Object.values(docentes)
-    .sort((a, b) => {
-      return (a.apellido_paterno || "").localeCompare(b.apellido_paterno || "");
-    })
-    .map((docente) => {
-      const marcadasEntrada = docente.entradaMarcadas.size;
-      const marcadasSalida = docente.salidaMarcadas.size;
-      const totalMarcadas = marcadasEntrada + marcadasSalida;
-      const porcentaje = totalProgramadas > 0
-        ? (totalMarcadas / totalProgramadas) * 100
-        : 0;
+  const filas = Object.values(mapa).map((d) => {
+    const marcadas = d.asistenciasMarcadas.size;
+    const porcentaje = totalProgramadas > 0 ? (marcadas / totalProgramadas) * 100 : 0;
 
-      return {
-        "DNI": docente.dni,
-        "Departamento académico": docente.departamento,
-        "Apellido paterno": docente.apellido_paterno,
-        "Apellido materno": docente.apellido_materno,
-        "Correo electrónico": docente.correo,
-        "Entrada": `${marcadasEntrada}/${totalEntrada}`,
-        "Salida": `${marcadasSalida}/${totalSalida}`,
-        "Porcentaje de asistencia": `${porcentaje.toFixed(2)}%`,
-      };
-    });
+    return {
+      "Departamento académico": d.departamento,
+      "DNI": d.dni,
+      "Apellido paterno": d.apellido_paterno,
+      "Apellido materno": d.apellido_materno,
+      "Nombre": d.nombres,
+      "Asistencias registradas": `${marcadas}/${totalProgramadas}`,
+      "Porcentaje": `${porcentaje.toFixed(2)}%`,
+      "Estado": porcentaje >= 80 ? "APROBADO" : "DESAPROBADO",
+    };
+  });
 
-  exportarExcel(filas, nombreArchivo, [
-    { wch: 14 },
-    { wch: 30 },
-    { wch: 24 },
-    { wch: 24 },
-    { wch: 36 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 26 },
-  ]);
+  exportarExcel(filas, `reporte_general_${inicio}_a_${fin}.xlsx`);
 }
 
-function exportarExcel(filas, nombreArchivo, columnas) {
+function exportarExcel(filas, nombreArchivo) {
   if (!filas || filas.length === 0) {
-    mostrarToast("No hay datos válidos para exportar.", "warning");
+    mostrarToast("No hay datos para exportar.", "warning");
     return;
   }
 
   const hoja = XLSX.utils.json_to_sheet(filas);
-
-  hoja["!cols"] = columnas;
 
   hoja["!autofilter"] = {
     ref: XLSX.utils.encode_range({
@@ -380,66 +294,83 @@ function exportarExcel(filas, nombreArchivo, columnas) {
     }),
   };
 
+  hoja["!cols"] = Object.keys(filas[0]).map((columna) => ({
+    wch: Math.max(18, columna.length + 8),
+  }));
+
+  aplicarEstiloEstado(hoja, filas);
+
   const libro = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(libro, hoja, "Reporte");
 
-  descargarExcel(libro, nombreArchivo);
-}
-
-function descargarExcel(libro, nombreArchivo) {
   try {
-    const excelBuffer = XLSX.write(libro, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    const archivo = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
-    const url = URL.createObjectURL(archivo);
-    const enlace = document.createElement("a");
-
-    enlace.href = url;
-    enlace.download = nombreArchivo;
-    document.body.appendChild(enlace);
-    enlace.click();
-    document.body.removeChild(enlace);
-
-    URL.revokeObjectURL(url);
-
-    mostrarToast("Reporte Excel descargado correctamente.", "success");
+    XLSX.writeFile(libro, nombreArchivo);
+    mostrarToast("Excel descargado correctamente.", "success");
   } catch (error) {
     console.error(error);
-    alert("No se pudo descargar el Excel. Revise la consola del navegador.");
+    alert("No se pudo descargar el Excel.");
   }
 }
 
-function validarDependencias() {
-  if (typeof XLSX === "undefined") {
-    alert("No se cargó la librería de Excel. Revise el script XLSX en reportes.html.");
-    return false;
-  }
+function aplicarEstiloEstado(hoja, filas) {
+  if (!filas || filas.length === 0) return;
 
-  if (typeof supabaseClient === "undefined") {
-    alert("No se cargó Supabase. Revise que js/supabase.js esté antes de js/reportes.js.");
-    return false;
-  }
+  const columnas = Object.keys(filas[0]);
+  const indiceEstado = columnas.indexOf("Estado");
 
-  return true;
+  if (indiceEstado === -1) return;
+
+  for (let i = 0; i < filas.length; i++) {
+    const celda = XLSX.utils.encode_cell({
+      r: i + 1,
+      c: indiceEstado,
+    });
+
+    if (!hoja[celda]) continue;
+
+    const valor = String(hoja[celda].v || "").toUpperCase();
+
+    if (valor === "APROBADO") {
+      hoja[celda].s = {
+        fill: {
+          fgColor: { rgb: "C6EFCE" },
+        },
+        font: {
+          color: { rgb: "006100" },
+          bold: true,
+        },
+      };
+    }
+
+    if (valor === "DESAPROBADO") {
+      hoja[celda].s = {
+        fill: {
+          fgColor: { rgb: "FFC7CE" },
+        },
+        font: {
+          color: { rgb: "9C0006" },
+          bold: true,
+        },
+      };
+    }
+  }
 }
 
 function normalizarTipo(tipo) {
   const valor = limpiarTexto(tipo).toLowerCase();
 
-  if (valor === "entrada") return "Entrada";
-  if (valor === "salida") return "Salida";
+  if (valor === "entrada") return "ENTRADA";
+  if (valor === "salida") return "SALIDA";
 
-  return valor;
+  return "GENERAL";
 }
 
 function limpiarTexto(valor) {
   return String(valor || "").trim();
+}
+
+function mayuscula(valor) {
+  return limpiarTexto(valor).toUpperCase();
 }
 
 function mostrarToast(mensaje, tipo = "success") {

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reportes avanzados | Asistencia Docente</title>
 
-  <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/reportes.css" />
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -16,62 +15,81 @@
   <main class="report-layout">
     <section class="report-card">
 
-      <div class="report-header">
+      <header class="report-header">
         <div>
+          <span class="eyebrow">Panel administrativo</span>
           <h1>Reportes avanzados</h1>
-          <p>Genere reportes de asistencia por día o reportes generales.</p>
+          <p>Genera reportes de asistencia por día o por rango de fechas.</p>
         </div>
 
-        <button class="btn secondary" onclick="window.location.href='admin.html'">
+        <button class="btn btn-light" onclick="window.location.href='admin.html'">
           Volver al panel
         </button>
-      </div>
+      </header>
 
-      <div class="report-options">
-        <button class="option-card active" id="btnOpcionDia">
+      <div class="tabs">
+        <button id="tabDia" class="tab active">
           <strong>Por día</strong>
-          <span>Reporte filtrado por fecha, entrada, salida o general.</span>
+          <span>Entrada, salida o general del día</span>
         </button>
 
-        <button class="option-card" id="btnOpcionGeneral">
+        <button id="tabGeneral" class="tab">
           <strong>General</strong>
-          <span>Reporte completo de todas las asistencias programadas.</span>
+          <span>Reporte por rango de fechas</span>
         </button>
       </div>
 
-      <section id="seccionDia" class="report-section visible">
-        <h2>Reporte por día</h2>
-        <p>Seleccione una fecha y el tipo de reporte que desea descargar.</p>
+      <section id="panelDia" class="panel active">
+        <div class="panel-head">
+          <h2>Reporte por día</h2>
+          <p>Seleccione una fecha y el tipo de reporte que desea descargar.</p>
+        </div>
 
         <div class="form-grid">
           <div class="form-group">
             <label>Fecha</label>
-            <input type="date" id="fechaReporteDia" />
+            <input type="date" id="fechaDia" />
           </div>
         </div>
 
-        <div class="type-options">
-          <button class="btn primary" id="btnReporteEntrada">
-            Entrada
+        <div class="option-actions">
+          <button class="btn btn-primary" onclick="reporteDia('entrada')">
+            Descargar entrada
           </button>
 
-          <button class="btn primary" id="btnReporteSalida">
-            Salida
+          <button class="btn btn-primary" onclick="reporteDia('salida')">
+            Descargar salida
           </button>
 
-          <button class="btn primary" id="btnReporteDiaGeneral">
-            General
+          <button class="btn btn-primary" onclick="reporteDia('general')">
+            Descargar general del día
           </button>
         </div>
       </section>
 
-      <section id="seccionGeneral" class="report-section">
-        <h2>Reporte general</h2>
-        <p>Descarga el reporte completo considerando todas las asistencias programadas de todos los días.</p>
+      <section id="panelGeneral" class="panel">
+        <div class="panel-head">
+          <h2>Reporte general</h2>
+          <p>Seleccione un rango de fechas para calcular el reporte general.</p>
+        </div>
 
-        <button class="btn primary" id="btnDescargarGeneral">
-          Descargar Excel general
-        </button>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" id="fechaInicio" />
+          </div>
+
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" id="fechaFin" />
+          </div>
+        </div>
+
+        <div class="option-actions">
+          <button class="btn btn-primary" onclick="reporteRango()">
+            Descargar Excel general
+          </button>
+        </div>
       </section>
 
     </section>
