@@ -1,48 +1,15 @@
 let asistenciaActiva = null;
-let ubicacionDocente = null;
-let distanciaCalculada = null;
 let intervaloContador = null;
 let registroGuardadoId = null;
-let deviceId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  deviceId = await obtenerDeviceId();
-
   cargarAsistenciaDisponible();
 
   document.getElementById("celular").addEventListener("input", limpiarCelular);
   document.getElementById("dni").addEventListener("input", limpiarDni);
-  document.getElementById("btnVerificarUbicacion").addEventListener("click", verificarUbicacionDocente);
   document.getElementById("formDocente").addEventListener("submit", enviarAsistencia);
   document.getElementById("btnAnular").addEventListener("click", anularAsistencia);
 });
-
-async function obtenerDeviceId() {
-  const datosEquipo = [
-    navigator.userAgent,
-    navigator.platform,
-    navigator.language,
-    screen.width,
-    screen.height,
-    screen.colorDepth,
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-    navigator.hardwareConcurrency || "",
-    navigator.deviceMemory || "",
-    navigator.maxTouchPoints || ""
-  ].join("|");
-
-  if (crypto && crypto.subtle) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(datosEquipo);
-    const hash = await crypto.subtle.digest("SHA-256", data);
-
-    return Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-
-  return btoa(datosEquipo).replace(/[^a-zA-Z0-9]/g, "");
-}
 
 function limpiarCelular() {
   const celular = document.getElementById("celular");
@@ -104,39 +71,11 @@ async function cargarAsistenciaDisponible() {
 
   asistenciaActiva = activa;
 
-  const registro = await buscarRegistroDelDispositivo();
-
-  if (registro) {
-    registroGuardadoId = registro.id;
-    mostrarEstadoExito("Este dispositivo ya registró asistencia");
-    mostrarAvisoConstancia();
-    bloquearCamposDespuesDeEnviar();
-    mostrarBotonAnular();
-  } else {
-    mostrarEstadoActivo("Asistencia habilitada");
-    ocultarAvisoConstancia();
-    desbloquearFormulario();
-  }
+  mostrarEstadoActivo("Asistencia habilitada");
+  ocultarAvisoConstancia();
+  desbloquearFormulario();
 
   iniciarContador(activa);
-}
-
-async function buscarRegistroDelDispositivo() {
-  if (!asistenciaActiva || !deviceId) return null;
-
-  const { data, error } = await supabaseClient
-    .from("registros_asistencia")
-    .select("id")
-    .eq("asistencia_programada_id", asistenciaActiva.id)
-    .eq("device_id", deviceId)
-    .maybeSingle();
-
-  if (error) {
-    console.error(error);
-    return null;
-  }
-
-  return data;
 }
 
 function mostrarEstadoActivo(titulo) {
@@ -208,62 +147,6 @@ function iniciarContador(asistencia) {
   }, 1000);
 }
 
-function verificarUbicacionDocente() {
-  if (!asistenciaActiva) {
-    mostrarToast("No hay asistencia activa en este momento.", "error");
-    return;
-  }
-
-  if (!navigator.geolocation) {
-    mostrarToast("Este dispositivo no permite geolocalización.", "error");
-    return;
-  }
-
-  mostrarToast("Solicitando permiso de ubicación...", "warning");
-
-  navigator.geolocation.getCurrentPosition(
-    (posicion) => {
-      ubicacionDocente = {
-        latitud: posicion.coords.latitude,
-        longitud: posicion.coords.longitude,
-      };
-
-      distanciaCalculada = calcularDistanciaMetros(
-        asistenciaActiva.latitud,
-        asistenciaActiva.longitud,
-        ubicacionDocente.latitud,
-        ubicacionDocente.longitud
-      );
-
-      const estadoUbicacion = document.getElementById("ubicacionEstado");
-
-      if (distanciaCalculada <= asistenciaActiva.radio_metros) {
-        estadoUbicacion.className = "location-status ok";
-        estadoUbicacion.textContent =
-          `Ubicación válida. Distancia aproximada: ${Math.round(distanciaCalculada)} metros.`;
-
-        document.getElementById("btnEnviar").disabled = false;
-        mostrarToast("Ubicación verificada correctamente.", "success");
-      } else {
-        estadoUbicacion.className = "location-status error";
-        estadoUbicacion.textContent =
-          `Fuera del perímetro autorizado. Distancia aproximada: ${Math.round(distanciaCalculada)} metros.`;
-
-        document.getElementById("btnEnviar").disabled = true;
-        mostrarToast("No puede registrar asistencia fuera del rango permitido.", "error");
-      }
-    },
-    () => {
-      mostrarToast("Debe permitir el acceso a su ubicación para registrar asistencia.", "error");
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 12000,
-      maximumAge: 0,
-    }
-  );
-}
-
 function validarFormularioDocente() {
   const dni = document.getElementById("dni").value.trim();
   const nombres = document.getElementById("nombres").value.trim();
@@ -293,18 +176,6 @@ function validarFormularioDocente() {
 async function enviarAsistencia(evento) {
   evento.preventDefault();
 
-  const registroExistente = await buscarRegistroDelDispositivo();
-
-  if (registroExistente) {
-    registroGuardadoId = registroExistente.id;
-    mostrarEstadoExito("Este dispositivo ya registró asistencia");
-    mostrarAvisoConstancia();
-    bloquearCamposDespuesDeEnviar();
-    mostrarBotonAnular();
-    mostrarToast("Este dispositivo ya registró asistencia.", "warning");
-    return;
-  }
-
   if (!asistenciaActiva) {
     mostrarToast("No hay asistencia activa.", "error");
     return;
@@ -318,28 +189,14 @@ async function enviarAsistencia(evento) {
 
   if (!validarFormularioDocente()) return;
 
-  if (!ubicacionDocente || distanciaCalculada === null) {
-    mostrarToast("Primero debe verificar su ubicación.", "error");
-    return;
-  }
-
-  if (distanciaCalculada > asistenciaActiva.radio_metros) {
-    mostrarToast("No puede registrar asistencia fuera del rango autorizado.", "error");
-    return;
-  }
-
   const registro = {
     asistencia_programada_id: asistenciaActiva.id,
-    device_id: deviceId,
     dni: document.getElementById("dni").value.trim(),
     nombres: document.getElementById("nombres").value.trim(),
     apellido_paterno: document.getElementById("apellidoPaterno").value.trim(),
     apellido_materno: document.getElementById("apellidoMaterno").value.trim(),
     celular: document.getElementById("celular").value.trim(),
     departamento: document.getElementById("departamento").value,
-    latitud_docente: ubicacionDocente.latitud,
-    longitud_docente: ubicacionDocente.longitud,
-    distancia_metros: distanciaCalculada,
   };
 
   const { data, error } = await supabaseClient
@@ -350,19 +207,6 @@ async function enviarAsistencia(evento) {
 
   if (error) {
     console.error(error);
-
-    if (error.code === "23505") {
-      const existente = await buscarRegistroDelDispositivo();
-      if (existente) registroGuardadoId = existente.id;
-
-      mostrarEstadoExito("Este dispositivo ya registró asistencia");
-      mostrarAvisoConstancia();
-      bloquearCamposDespuesDeEnviar();
-      mostrarBotonAnular();
-      mostrarToast("Este dispositivo ya registró asistencia.", "warning");
-      return;
-    }
-
     mostrarToast("No se pudo registrar la asistencia. Intente nuevamente.", "error");
     return;
   }
@@ -377,11 +221,6 @@ async function enviarAsistencia(evento) {
 }
 
 async function anularAsistencia() {
-  if (!registroGuardadoId) {
-    const registro = await buscarRegistroDelDispositivo();
-    if (registro) registroGuardadoId = registro.id;
-  }
-
   if (!registroGuardadoId) {
     mostrarToast("No se encontró un registro para anular.", "error");
     return;
@@ -402,8 +241,7 @@ async function anularAsistencia() {
   const { error } = await supabaseClient
     .from("registros_asistencia")
     .delete()
-    .eq("id", registroGuardadoId)
-    .eq("device_id", deviceId);
+    .eq("id", registroGuardadoId);
 
   if (error) {
     console.error(error);
@@ -412,11 +250,6 @@ async function anularAsistencia() {
   }
 
   registroGuardadoId = null;
-  ubicacionDocente = null;
-  distanciaCalculada = null;
-
-  document.getElementById("ubicacionEstado").className = "location-status";
-  document.getElementById("ubicacionEstado").textContent = "Verifique su ubicación";
 
   ocultarBotonAnular();
   ocultarAvisoConstancia();
@@ -431,7 +264,6 @@ function bloquearCamposDespuesDeEnviar() {
     el.disabled = true;
   });
 
-  document.getElementById("btnVerificarUbicacion").disabled = true;
   document.getElementById("btnEnviar").disabled = true;
 }
 
@@ -446,8 +278,7 @@ function desbloquearFormulario() {
     el.disabled = false;
   });
 
-  document.getElementById("btnVerificarUbicacion").disabled = false;
-  document.getElementById("btnEnviar").disabled = true;
+  document.getElementById("btnEnviar").disabled = false;
   ocultarBotonAnular();
 }
 
