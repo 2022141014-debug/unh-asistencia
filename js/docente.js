@@ -2,7 +2,7 @@ let asistenciaActiva = null;
 let intervaloContador = null;
 let registroGuardadoId = null;
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   cargarAsistenciaDisponible();
 
   document.getElementById("celular").addEventListener("input", limpiarCelular);
@@ -51,11 +51,11 @@ async function cargarAsistenciaDisponible() {
   const { data, error } = await supabaseClient
     .from("asistencias_programadas")
     .select("*")
-    .order("fecha", { ascending: true })
+    .eq("fecha", fechaLocalHoy())
     .order("hora_inicio", { ascending: true });
 
   if (error) {
-    console.error(error);
+    console.error("Error cargando asistencia:", error);
     mostrarEstadoCerrado("Error del sistema");
     bloquearTodo();
     return;
@@ -74,7 +74,6 @@ async function cargarAsistenciaDisponible() {
   mostrarEstadoActivo("Asistencia habilitada");
   ocultarAvisoConstancia();
   desbloquearFormulario();
-
   iniciarContador(activa);
 }
 
@@ -82,14 +81,19 @@ function mostrarEstadoActivo(titulo) {
   const card = document.getElementById("estadoAsistencia");
   card.className = "status-card active";
   document.getElementById("estadoTexto").textContent = titulo;
-  document.getElementById("descripcionAsistencia").textContent = "";
+
+  const descripcion = document.getElementById("descripcionAsistencia");
+  if (descripcion) descripcion.textContent = "";
 }
 
 function mostrarEstadoCerrado(titulo) {
   const card = document.getElementById("estadoAsistencia");
   card.className = "status-card closed";
   document.getElementById("estadoTexto").textContent = titulo;
-  document.getElementById("descripcionAsistencia").textContent = "";
+
+  const descripcion = document.getElementById("descripcionAsistencia");
+  if (descripcion) descripcion.textContent = "";
+
   document.getElementById("contador").textContent = "00:00";
 }
 
@@ -97,23 +101,19 @@ function mostrarEstadoExito(titulo) {
   const card = document.getElementById("estadoAsistencia");
   card.className = "status-card success";
   document.getElementById("estadoTexto").textContent = titulo;
-  document.getElementById("descripcionAsistencia").textContent = "";
+
+  const descripcion = document.getElementById("descripcionAsistencia");
+  if (descripcion) descripcion.textContent = "";
 }
 
 function mostrarAvisoConstancia() {
   const aviso = document.getElementById("avisoConstancia");
-
-  if (aviso) {
-    aviso.hidden = false;
-  }
+  if (aviso) aviso.hidden = false;
 }
 
 function ocultarAvisoConstancia() {
   const aviso = document.getElementById("avisoConstancia");
-
-  if (aviso) {
-    aviso.hidden = true;
-  }
+  if (aviso) aviso.hidden = true;
 }
 
 function iniciarContador(asistencia) {
@@ -189,6 +189,10 @@ async function enviarAsistencia(evento) {
 
   if (!validarFormularioDocente()) return;
 
+  const btnEnviar = document.getElementById("btnEnviar");
+  btnEnviar.disabled = true;
+  btnEnviar.textContent = "Guardando...";
+
   const registro = {
     asistencia_programada_id: asistenciaActiva.id,
     dni: document.getElementById("dni").value.trim(),
@@ -196,7 +200,7 @@ async function enviarAsistencia(evento) {
     apellido_paterno: document.getElementById("apellidoPaterno").value.trim(),
     apellido_materno: document.getElementById("apellidoMaterno").value.trim(),
     celular: document.getElementById("celular").value.trim(),
-    departamento: document.getElementById("departamento").value,
+    departamento: document.getElementById("departamento").value
   };
 
   const { data, error } = await supabaseClient
@@ -206,8 +210,11 @@ async function enviarAsistencia(evento) {
     .single();
 
   if (error) {
-    console.error(error);
-    mostrarToast("No se pudo registrar la asistencia. Intente nuevamente.", "error");
+    console.error("Error guardando asistencia:", error);
+    mostrarToast("No se pudo registrar la asistencia.", "error");
+
+    btnEnviar.disabled = false;
+    btnEnviar.textContent = "Enviar asistencia";
     return;
   }
 
@@ -218,11 +225,13 @@ async function enviarAsistencia(evento) {
   mostrarAvisoConstancia();
   bloquearCamposDespuesDeEnviar();
   mostrarBotonAnular();
+
+  btnEnviar.textContent = "Asistencia enviada";
 }
 
 async function anularAsistencia() {
   if (!registroGuardadoId) {
-    mostrarToast("No se encontró un registro para anular.", "error");
+    mostrarToast("No se encontró asistencia registrada para anular.", "error");
     return;
   }
 
@@ -244,15 +253,17 @@ async function anularAsistencia() {
     .eq("id", registroGuardadoId);
 
   if (error) {
-    console.error(error);
+    console.error("Error anulando asistencia:", error);
     mostrarToast("No se pudo anular la asistencia.", "error");
     return;
   }
 
   registroGuardadoId = null;
 
-  ocultarBotonAnular();
+  document.getElementById("formDocente").reset();
+
   ocultarAvisoConstancia();
+  ocultarBotonAnular();
   desbloquearFormulario();
   mostrarEstadoActivo("Asistencia habilitada");
 
@@ -278,18 +289,25 @@ function desbloquearFormulario() {
     el.disabled = false;
   });
 
-  document.getElementById("btnEnviar").disabled = false;
+  const btnEnviar = document.getElementById("btnEnviar");
+  btnEnviar.disabled = false;
+  btnEnviar.textContent = "Enviar asistencia";
+
   ocultarBotonAnular();
 }
 
 function mostrarBotonAnular() {
   const btn = document.getElementById("btnAnular");
+  if (!btn) return;
+
   btn.hidden = false;
   btn.disabled = false;
 }
 
 function ocultarBotonAnular() {
   const btn = document.getElementById("btnAnular");
+  if (!btn) return;
+
   btn.hidden = true;
   btn.disabled = true;
 }
