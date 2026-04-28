@@ -18,7 +18,6 @@ body.docente-body {
   overflow: hidden;
 }
 
-/* HEADER */
 .mobile-header {
   background: linear-gradient(135deg, #003866, #1f5c9d);
   color: white;
@@ -38,6 +37,8 @@ body.docente-body {
   justify-content: center;
   font-weight: 900;
   font-size: 21px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
 }
 
 .header-divider {
@@ -45,16 +46,18 @@ body.docente-body {
   height: 48px;
   background: rgba(255,255,255,0.42);
   border-radius: 99px;
+  flex-shrink: 0;
 }
 
 .header-text {
   display: flex;
   flex-direction: column;
+  gap: 3px;
   font-size: 13px;
   font-weight: 800;
+  line-height: 1.25;
 }
 
-/* TITULO */
 .title-section {
   padding: 22px 16px 14px;
 }
@@ -62,11 +65,11 @@ body.docente-body {
 .title-section h2 {
   margin: 0;
   color: #003866;
-  font-size: 22px;
+  font-size: 23px;
   text-align: center;
+  letter-spacing: 0.3px;
 }
 
-/* ===== ESTADOS ===== */
 .status-card {
   margin: 0 16px 16px;
   padding: 16px;
@@ -76,11 +79,18 @@ body.docente-body {
 }
 
 .status-card strong {
+  color: #003866;
   font-size: 18px;
   font-weight: 900;
 }
 
-/* 🟢 ACTIVO */
+.status-card p {
+  margin: 6px 0 0;
+  color: #52657b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .status-card.active {
   background: #e6f6ec;
   border: 1px solid #22c55e;
@@ -90,7 +100,6 @@ body.docente-body {
   color: #166534;
 }
 
-/* 🔴 CERRADO */
 .status-card.closed {
   background: #fdecec;
   border: 1px solid #ef4444;
@@ -100,7 +109,6 @@ body.docente-body {
   color: #b91c1c;
 }
 
-/* 🟢 REGISTRADO */
 .status-card.success {
   background: #dcfce7;
   border: 1px solid #16a34a;
@@ -110,7 +118,6 @@ body.docente-body {
   color: #166534;
 }
 
-/* TIMER */
 .timer-box {
   margin: 0 16px 16px;
   padding: 18px;
@@ -122,15 +129,41 @@ body.docente-body {
 
 .timer-box span {
   display: block;
+  margin-bottom: 6px;
   font-weight: 700;
 }
 
 .timer-box strong {
-  font-size: 34px;
+  display: block;
+  font-size: 36px;
+  line-height: 1;
   font-weight: 900;
 }
 
-/* FORM */
+.certificate-notice {
+  margin: 0 16px 16px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff8d7;
+  border: 1px solid #facc15;
+  color: #6b4e00;
+  text-align: center;
+}
+
+.certificate-notice strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 4px;
+}
+
+.certificate-notice p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .mobile-form {
   padding: 0 16px 22px;
   display: flex;
@@ -146,26 +179,28 @@ body.docente-body {
 .mobile-form input,
 .mobile-form select {
   height: 46px;
-  border-radius: 12px;
+  border-radius: 13px;
   border: 1px solid #cfd9e6;
   padding: 0 12px;
   font-size: 15px;
+  outline: none;
+  background: white;
 }
 
 .mobile-form input:focus,
 .mobile-form select:focus {
   border-color: #1f5c9d;
-  outline: none;
+  box-shadow: 0 0 0 3px rgba(31,92,157,0.14);
 }
 
-/* BOTÓN */
 .btn {
   height: 46px;
-  border-radius: 12px;
+  border-radius: 13px;
   border: none;
   font-weight: 800;
   font-size: 15px;
   cursor: pointer;
+  transition: all 0.25s ease;
 }
 
 .btn.primary {
@@ -174,7 +209,7 @@ body.docente-body {
 }
 
 .btn.primary:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .btn.cancel {
@@ -188,7 +223,6 @@ body.docente-body {
   cursor: not-allowed;
 }
 
-/* TOAST */
 .toast {
   position: fixed;
   left: 16px;
@@ -201,6 +235,7 @@ body.docente-body {
   text-align: center;
   font-weight: 800;
   display: none;
+  z-index: 9999;
 }
 
 .toast.show {
@@ -219,9 +254,9 @@ body.docente-body {
   background: #b7791f;
 }
 
-/* RESPONSIVE */
 @media (max-width: 430px) {
   .mobile-card {
     border-radius: 0;
+    min-height: 100vh;
   }
 }

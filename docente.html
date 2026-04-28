@@ -47,40 +47,32 @@
     <form id="formDocente" class="mobile-form">
 
       <label>DNI</label>
-      <input id="dni" type="text" maxlength="8" required>
+      <input id="dni" type="text" inputmode="numeric" maxlength="8" required>
 
-      <label>Nombres</label>
-      <input id="nombres" type="text" required>
-
-      <label>Apellido paterno</label>
-      <input id="apellidoPaterno" type="text" required>
-
-      <label>Apellido materno</label>
-      <input id="apellidoMaterno" type="text" required>
-
-      <label>Celular</label>
-      <input id="celular" type="text" maxlength="9" required>
+      <label>Apellidos y nombres</label>
+      <input id="apellidosNombres" type="text" required>
 
       <label>Departamento académico</label>
       <select id="departamento" required>
+        <option value="">Seleccione</option>
         <option>DA DE ADMINISTRACION</option>
-  <option>DA DE CIENCIAS AGRARIAS</option>
-  <option>DA DE CIENCIAS DE LA SALUD</option>
-  <option>DA DE CIENCIAS HUMANIDADES</option>
-  <option>DA DE CONTABILIDAD</option>
-  <option>DA DE DERECHO</option>
-  <option>DA DE ECONOMIA</option>
-  <option>DA DE ELECTRONICA</option>
-  <option>DA DE ENFERMERIA</option>
-  <option>DA DE INGENIERIA AGROINDUSTRIAL</option>
-  <option>DA DE INGENIERIA AMBIENTAL LIRCAY</option>
-  <option>DA DE INGENIERIA AMBIENTAL Y SANITARIA</option>
-  <option>DA DE INGENIERIA CIVIL HUANCAVELICA</option>
-  <option>DA DE INGENIERIA CIVIL LIRCAY</option>
-  <option>DA DE INGENIERIA DE MINAS</option>
-  <option>DA DE PEDAGOGIA</option>
-  <option>DA DE SISTEMAS</option>
-  <option>DA DE ZOOTECNIA</option>
+        <option>DA DE CIENCIAS AGRARIAS</option>
+        <option>DA DE CIENCIAS DE LA SALUD</option>
+        <option>DA DE CIENCIAS HUMANIDADES</option>
+        <option>DA DE CONTABILIDAD</option>
+        <option>DA DE DERECHO</option>
+        <option>DA DE ECONOMIA</option>
+        <option>DA DE ELECTRONICA</option>
+        <option>DA DE ENFERMERIA</option>
+        <option>DA DE INGENIERIA AGROINDUSTRIAL</option>
+        <option>DA DE INGENIERIA AMBIENTAL LIRCAY</option>
+        <option>DA DE INGENIERIA AMBIENTAL Y SANITARIA</option>
+        <option>DA DE INGENIERIA CIVIL HUANCAVELICA</option>
+        <option>DA DE INGENIERIA CIVIL LIRCAY</option>
+        <option>DA DE INGENIERIA DE MINAS</option>
+        <option>DA DE PEDAGOGIA</option>
+        <option>DA DE SISTEMAS</option>
+        <option>DA DE ZOOTECNIA</option>
       </select>
 
       <button type="submit" class="btn primary" id="btnEnviar" disabled>

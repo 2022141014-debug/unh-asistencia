@@ -5,16 +5,10 @@ let registroGuardadoId = null;
 document.addEventListener("DOMContentLoaded", () => {
   cargarAsistenciaDisponible();
 
-  document.getElementById("celular").addEventListener("input", limpiarCelular);
   document.getElementById("dni").addEventListener("input", limpiarDni);
   document.getElementById("formDocente").addEventListener("submit", enviarAsistencia);
   document.getElementById("btnAnular").addEventListener("click", anularAsistencia);
 });
-
-function limpiarCelular() {
-  const celular = document.getElementById("celular");
-  celular.value = celular.value.replace(/\D/g, "").slice(0, 9);
-}
 
 function limpiarDni() {
   const dni = document.getElementById("dni");
@@ -149,24 +143,16 @@ function iniciarContador(asistencia) {
 
 function validarFormularioDocente() {
   const dni = document.getElementById("dni").value.trim();
-  const nombres = document.getElementById("nombres").value.trim();
-  const apellidoPaterno = document.getElementById("apellidoPaterno").value.trim();
-  const apellidoMaterno = document.getElementById("apellidoMaterno").value.trim();
-  const celular = document.getElementById("celular").value.trim();
+  const apellidosNombres = document.getElementById("apellidosNombres").value.trim();
   const departamento = document.getElementById("departamento").value;
 
-  if (!dni || !nombres || !apellidoPaterno || !apellidoMaterno || !celular || !departamento) {
+  if (!dni || !apellidosNombres || !departamento) {
     mostrarToast("Complete todos los campos obligatorios.", "error");
     return false;
   }
 
   if (!/^\d{8}$/.test(dni)) {
     mostrarToast("El DNI debe contener exactamente 8 números.", "error");
-    return false;
-  }
-
-  if (!/^\d{9}$/.test(celular)) {
-    mostrarToast("El celular debe contener exactamente 9 números.", "error");
     return false;
   }
 
@@ -196,10 +182,10 @@ async function enviarAsistencia(evento) {
   const registro = {
     asistencia_programada_id: asistenciaActiva.id,
     dni: document.getElementById("dni").value.trim(),
-    nombres: document.getElementById("nombres").value.trim(),
-    apellido_paterno: document.getElementById("apellidoPaterno").value.trim(),
-    apellido_materno: document.getElementById("apellidoMaterno").value.trim(),
-    celular: document.getElementById("celular").value.trim(),
+    nombres: document.getElementById("apellidosNombres").value.trim(),
+    apellido_paterno: null,
+    apellido_materno: null,
+    celular: null,
     departamento: document.getElementById("departamento").value
   };
 
