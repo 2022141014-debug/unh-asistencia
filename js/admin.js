@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnGenerarReporte")?.addEventListener("click", generarReporteExcel);
 });
+document.getElementById("btnIrReportesAvanzados")?.addEventListener("click", () => {
+  window.location.href = "reportes.html";
+});
 
 function inicializarMenu() {
   const botones = document.querySelectorAll(".menu-btn");

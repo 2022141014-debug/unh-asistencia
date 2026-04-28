@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reportes avanzados | Asistencia Docente</title>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/reportes.css" />
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+
+<body>
+  <main class="report-layout">
+    <section class="report-card">
+
+      <div class="report-header">
+        <div>
+          <h1>Reportes avanzados</h1>
+          <p>Genere reportes de asistencia por día o reportes generales.</p>
+        </div>
+
+        <button class="btn secondary" onclick="window.location.href='admin.html'">
+          Volver al panel
+        </button>
+      </div>
+
+      <div class="report-options">
+        <button class="option-card active" id="btnOpcionDia">
+          <strong>Por día</strong>
+          <span>Reporte filtrado por fecha, entrada, salida o general.</span>
+        </button>
+
+        <button class="option-card" id="btnOpcionGeneral">
+          <strong>General</strong>
+          <span>Reporte completo de todas las asistencias programadas.</span>
+        </button>
+      </div>
+
+      <section id="seccionDia" class="report-section visible">
+        <h2>Reporte por día</h2>
+        <p>Seleccione una fecha y el tipo de reporte que desea descargar.</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="fechaReporteDia" />
+          </div>
+        </div>
+
+        <div class="type-options">
+          <button class="btn primary" id="btnReporteEntrada">
+            Entrada
+          </button>
+
+          <button class="btn primary" id="btnReporteSalida">
+            Salida
+          </button>
+
+          <button class="btn primary" id="btnReporteDiaGeneral">
+            General
+          </button>
+        </div>
+      </section>
+
+      <section id="seccionGeneral" class="report-section">
+        <h2>Reporte general</h2>
+        <p>Descarga el reporte completo considerando todas las asistencias programadas de todos los días.</p>
+
+        <button class="btn primary" id="btnDescargarGeneral">
+          Descargar Excel general
+        </button>
+      </section>
+
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/reportes.js"></script>
+</body>
+</html>
