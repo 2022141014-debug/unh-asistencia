@@ -5,8 +5,11 @@ let precisionGps = null;
 let radioPermitidoFinal = null;
 let intervaloContador = null;
 let registroGuardadoId = null;
+let gpsWatcherId = null;
+let gpsTimeoutId = null;
 
-const MARGEN_MAXIMO_GPS = 50;
+const MARGEN_EXTRA_EXTREMO = 20;
+const TIEMPO_MAXIMO_GPS = 30000;
 
 document.addEventListener("DOMContentLoaded", async () => {
   cargarAsistenciaDisponible();
@@ -142,6 +145,7 @@ function iniciarContador(asistencia) {
       mostrarEstadoCerrado("Tiempo finalizado");
       bloquearTodo();
       ocultarBotonAnular();
+      detenerSeguimientoGps();
       clearInterval(intervaloContador);
       return;
     }
@@ -154,10 +158,46 @@ function iniciarContador(asistencia) {
   }, 1000);
 }
 
-function obtenerUbicacion(opciones) {
-  return new Promise((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, opciones);
-  });
+function detenerSeguimientoGps() {
+  if (gpsWatcherId !== null) {
+    navigator.geolocation.clearWatch(gpsWatcherId);
+    gpsWatcherId = null;
+  }
+
+  if (gpsTimeoutId !== null) {
+    clearTimeout(gpsTimeoutId);
+    gpsTimeoutId = null;
+  }
+}
+
+function procesarPosicionGps(posicion, aceptarMargenExtra = false) {
+  ubicacionDocente = {
+    latitud: posicion.coords.latitude,
+    longitud: posicion.coords.longitude,
+  };
+
+  precisionGps = posicion.coords.accuracy || 0;
+
+  distanciaCalculada = calcularDistanciaMetros(
+    asistenciaActiva.latitud,
+    asistenciaActiva.longitud,
+    ubicacionDocente.latitud,
+    ubicacionDocente.longitud
+  );
+
+  const radioBase = Number(asistenciaActiva.radio_metros || 0);
+  radioPermitidoFinal = aceptarMargenExtra
+    ? radioBase + MARGEN_EXTRA_EXTREMO
+    : radioBase;
+
+  return {
+    distancia: Math.round(distanciaCalculada),
+    precision: Math.round(precisionGps),
+    radioBase,
+    radioFinal: radioPermitidoFinal,
+    dentroDelRadio: distanciaCalculada <= radioBase,
+    dentroDelMargenExtra: distanciaCalculada <= radioBase + MARGEN_EXTRA_EXTREMO,
+  };
 }
 
 async function verificarUbicacionDocente() {
@@ -171,63 +211,108 @@ async function verificarUbicacionDocente() {
     return;
   }
 
+  detenerSeguimientoGps();
+
   const estadoUbicacion = document.getElementById("ubicacionEstado");
   const btnEnviar = document.getElementById("btnEnviar");
   const btnUbicacion = document.getElementById("btnVerificarUbicacion");
 
+  ubicacionDocente = null;
+  distanciaCalculada = null;
+  precisionGps = null;
+  radioPermitidoFinal = null;
+
   btnEnviar.disabled = true;
   btnUbicacion.disabled = true;
+  btnUbicacion.classList.remove("success");
   btnUbicacion.textContent = "📍 Verificando ubicación...";
 
   estadoUbicacion.className = "location-status warning";
-  estadoUbicacion.textContent = "Obteniendo ubicación. Mantenga activado el GPS.";
+  estadoUbicacion.textContent =
+    "Buscando ubicación. Apenas esté dentro del rango, se validará automáticamente.";
 
-  try {
-    let posicion;
+  let mejorLectura = null;
 
-    try {
-      posicion = await obtenerUbicacion({
-        enableHighAccuracy: true,
-        timeout: 25000,
-        maximumAge: 0,
-      });
-    } catch (primerError) {
+  gpsWatcherId = navigator.geolocation.watchPosition(
+    (posicion) => {
+      const resultado = procesarPosicionGps(posicion, false);
+
+      if (!mejorLectura || resultado.distancia < mejorLectura.distancia) {
+        mejorLectura = {
+          posicion,
+          distancia: resultado.distancia,
+          precision: resultado.precision,
+        };
+      }
+
+      estadoUbicacion.className = "location-status warning";
       estadoUbicacion.textContent =
-        "La señal GPS está demorando. Intentando una verificación alternativa...";
+        `Verificando... Distancia aproximada: ${resultado.distancia} m. Radio permitido: ${resultado.radioBase} m.`;
 
-      posicion = await obtenerUbicacion({
-        enableHighAccuracy: false,
-        timeout: 15000,
-        maximumAge: 30000,
-      });
+      if (resultado.dentroDelRadio) {
+        detenerSeguimientoGps();
+
+        radioPermitidoFinal = resultado.radioBase;
+
+        estadoUbicacion.className = "location-status ok";
+        estadoUbicacion.textContent =
+          `Ubicación válida. Distancia aproximada: ${resultado.distancia} m.`;
+
+        btnEnviar.disabled = false;
+        btnUbicacion.disabled = false;
+        btnUbicacion.classList.add("success");
+        btnUbicacion.textContent = "✅ Ubicación verificada";
+
+        mostrarToast("Ubicación verificada correctamente.", "success");
+      }
+    },
+    (error) => {
+      console.error(error);
+
+      detenerSeguimientoGps();
+
+      estadoUbicacion.className = "location-status error";
+      estadoUbicacion.textContent =
+        "No se pudo obtener su ubicación. Active el GPS, permita el acceso al navegador y vuelva a intentar.";
+
+      btnEnviar.disabled = true;
+      btnUbicacion.disabled = false;
+      btnUbicacion.classList.remove("success");
+      btnUbicacion.textContent = "📍 Volver a verificar ubicación";
+
+      mostrarToast("No se pudo obtener la ubicación.", "error");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: TIEMPO_MAXIMO_GPS,
+      maximumAge: 0,
+    }
+  );
+
+  gpsTimeoutId = setTimeout(() => {
+    detenerSeguimientoGps();
+
+    btnUbicacion.disabled = false;
+
+    if (!mejorLectura) {
+      estadoUbicacion.className = "location-status error";
+      estadoUbicacion.textContent =
+        "No se pudo obtener una lectura de ubicación. Active el GPS y vuelva a intentar.";
+
+      btnEnviar.disabled = true;
+      btnUbicacion.textContent = "📍 Volver a verificar ubicación";
+      mostrarToast("No se pudo validar la ubicación.", "error");
+      return;
     }
 
-    ubicacionDocente = {
-      latitud: posicion.coords.latitude,
-      longitud: posicion.coords.longitude,
-    };
+    const resultadoFinal = procesarPosicionGps(mejorLectura.posicion, true);
 
-    precisionGps = posicion.coords.accuracy || 0;
+    if (resultadoFinal.dentroDelRadio) {
+      radioPermitidoFinal = resultadoFinal.radioBase;
 
-    distanciaCalculada = calcularDistanciaMetros(
-      asistenciaActiva.latitud,
-      asistenciaActiva.longitud,
-      ubicacionDocente.latitud,
-      ubicacionDocente.longitud
-    );
-
-    const radioBase = Number(asistenciaActiva.radio_metros || 0);
-    const margenGps = Math.min(Math.round(precisionGps), MARGEN_MAXIMO_GPS);
-
-    radioPermitidoFinal = radioBase + margenGps;
-
-    const distancia = Math.round(distanciaCalculada);
-    const precision = Math.round(precisionGps);
-
-    if (distanciaCalculada <= radioBase) {
       estadoUbicacion.className = "location-status ok";
       estadoUbicacion.textContent =
-        `Ubicación válida. Distancia aproximada: ${distancia} m. Precisión GPS: ${precision} m.`;
+        `Ubicación válida. Distancia aproximada: ${resultadoFinal.distancia} m.`;
 
       btnEnviar.disabled = false;
       btnUbicacion.classList.add("success");
@@ -237,45 +322,31 @@ async function verificarUbicacionDocente() {
       return;
     }
 
-    if (distanciaCalculada <= radioPermitidoFinal) {
+    if (resultadoFinal.dentroDelMargenExtra) {
+      radioPermitidoFinal = resultadoFinal.radioFinal;
+
       estadoUbicacion.className = "location-status ok";
       estadoUbicacion.textContent =
-        `Ubicación aceptada con baja precisión GPS. Distancia: ${distancia} m. Precisión: ${precision} m.`;
+        `Ubicación aceptada. Distancia aproximada: ${resultadoFinal.distancia} m. Margen aplicado: ${MARGEN_EXTRA_EXTREMO} m.`;
 
       btnEnviar.disabled = false;
       btnUbicacion.classList.add("success");
       btnUbicacion.textContent = "✅ Ubicación aceptada";
 
-      mostrarToast("Ubicación aceptada por margen de precisión GPS.", "warning");
+      mostrarToast("Ubicación aceptada por margen cercano.", "warning");
       return;
     }
 
     estadoUbicacion.className = "location-status error";
     estadoUbicacion.textContent =
-      `Fuera del rango autorizado. Distancia: ${distancia} m. Radio permitido: ${radioBase} m.`;
+      `Fuera del rango autorizado. Distancia aproximada: ${resultadoFinal.distancia} m. Radio permitido: ${resultadoFinal.radioBase} m.`;
 
     btnEnviar.disabled = true;
     btnUbicacion.classList.remove("success");
     btnUbicacion.textContent = "📍 Volver a verificar ubicación";
 
     mostrarToast("No puede registrar asistencia fuera del rango permitido.", "error");
-
-  } catch (error) {
-    console.error(error);
-
-    estadoUbicacion.className = "location-status error";
-    estadoUbicacion.textContent =
-      "No se pudo obtener su ubicación. Active el GPS, permita el acceso al navegador y vuelva a intentar.";
-
-    btnEnviar.disabled = true;
-    btnUbicacion.classList.remove("success");
-    btnUbicacion.textContent = "📍 Volver a verificar ubicación";
-
-    mostrarToast("No se pudo obtener la ubicación.", "error");
-
-  } finally {
-    btnUbicacion.disabled = false;
-  }
+  }, TIEMPO_MAXIMO_GPS);
 }
 
 function validarFormularioDocente() {
@@ -394,10 +465,7 @@ function confirmarDatosAntesDeEnviar(dni, nombreCompleto, departamento) {
           ¿Está de acuerdo con enviar estos datos?
         </p>
 
-        <div style="
-          display: flex;
-          gap: 10px;
-        ">
+        <div style="display: flex; gap: 10px;">
           <button id="btnCancelarConfirmacion" type="button" style="
             flex: 1;
             height: 46px;
@@ -459,7 +527,7 @@ async function enviarAsistencia(evento) {
 
   if (!validarFormularioDocente()) return;
 
-  if (!ubicacionDocente || distanciaCalculada === null) {
+  if (!ubicacionDocente || distanciaCalculada === null || radioPermitidoFinal === null) {
     mostrarToast("Primero debe verificar su ubicación.", "error");
     return;
   }
@@ -556,6 +624,8 @@ async function anularAsistencia() {
   precisionGps = null;
   radioPermitidoFinal = null;
 
+  detenerSeguimientoGps();
+
   document.getElementById("ubicacionEstado").className = "location-status";
   document.getElementById("ubicacionEstado").textContent =
     "Primero debe verificar su ubicación.";
@@ -573,6 +643,8 @@ async function anularAsistencia() {
 }
 
 function bloquearCamposDespuesDeEnviar() {
+  detenerSeguimientoGps();
+
   document.querySelectorAll("#formDocente input, #formDocente select").forEach((el) => {
     el.disabled = true;
   });
@@ -582,6 +654,8 @@ function bloquearCamposDespuesDeEnviar() {
 }
 
 function bloquearTodo() {
+  detenerSeguimientoGps();
+
   document.querySelectorAll("#formDocente input, #formDocente select, #formDocente button").forEach((el) => {
     el.disabled = true;
   });
