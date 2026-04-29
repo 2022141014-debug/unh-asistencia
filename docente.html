@@ -41,7 +41,9 @@
 
     <section class="certificate-notice" id="avisoConstancia" hidden>
       <strong>Revise bien sus datos.</strong>
-      <p>La información será usada para su constancia.</p>
+      <p>
+        La información registrada será considerada para la emisión de su constancia de capacitación.
+      </p>
     </section>
 
     <form id="formDocente" class="mobile-form">
@@ -50,30 +52,38 @@
       <input id="dni" type="text" inputmode="numeric" maxlength="8" required>
 
       <label>Apellidos y nombres</label>
-      <input id="apellidosNombres" type="text" required>
+      <input id="nombreCompleto" type="text" required>
 
       <label>Departamento académico</label>
       <select id="departamento" required>
         <option value="">Seleccione</option>
-        <option>DA DE ADMINISTRACION</option>
-        <option>DA DE CIENCIAS AGRARIAS</option>
-        <option>DA DE CIENCIAS DE LA SALUD</option>
-        <option>DA DE CIENCIAS HUMANIDADES</option>
-        <option>DA DE CONTABILIDAD</option>
-        <option>DA DE DERECHO</option>
-        <option>DA DE ECONOMIA</option>
-        <option>DA DE ELECTRONICA</option>
-        <option>DA DE ENFERMERIA</option>
-        <option>DA DE INGENIERIA AGROINDUSTRIAL</option>
-        <option>DA DE INGENIERIA AMBIENTAL LIRCAY</option>
-        <option>DA DE INGENIERIA AMBIENTAL Y SANITARIA</option>
-        <option>DA DE INGENIERIA CIVIL HUANCAVELICA</option>
-        <option>DA DE INGENIERIA CIVIL LIRCAY</option>
-        <option>DA DE INGENIERIA DE MINAS</option>
-        <option>DA DE PEDAGOGIA</option>
-        <option>DA DE SISTEMAS</option>
-        <option>DA DE ZOOTECNIA</option>
+        <option>DA ADMINISTRACION</option>
+        <option>DA CIENCIAS AGRARIAS</option>
+        <option>DA CIENCIAS DE LA SALUD</option>
+        <option>DA CIENCIAS HUMANIDADES</option>
+        <option>DA CONTABILIDAD</option>
+        <option>DA DERECHO</option>
+        <option>DA ECONOMIA</option>
+        <option>DA ELECTRONICA</option>
+        <option>DA ENFERMERIA</option>
+        <option>DA INGENIERIA AGROINDUSTRIAL</option>
+        <option>DA INGENIERIA AMBIENTAL LIRCAY</option>
+        <option>DA INGENIERIA AMBIENTAL Y SANITARIA</option>
+        <option>DA INGENIERIA CIVIL HUANCAVELICA</option>
+        <option>DA INGENIERIA CIVIL LIRCAY</option>
+        <option>DA INGENIERIA DE MINAS</option>
+        <option>DA PEDAGOGIA</option>
+        <option>DA SISTEMAS</option>
+        <option>DA ZOOTECNIA</option>
       </select>
+
+      <div class="location-status" id="ubicacionEstado">
+        Primero debe verificar su ubicación.
+      </div>
+
+      <button type="button" class="btn location" id="btnVerificarUbicacion">
+        📍 Pulsar para verificar ubicación
+      </button>
 
       <button type="submit" class="btn primary" id="btnEnviar" disabled>
         Enviar asistencia

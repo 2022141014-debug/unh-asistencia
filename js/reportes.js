@@ -47,9 +47,7 @@ async function reporteDia(tipo) {
     .from("registros_asistencia")
     .select(`
       dni,
-      nombres,
-      apellido_paterno,
-      apellido_materno,
+      nombre_completo,
       departamento,
       correo,
       asistencia_programada_id
@@ -86,10 +84,8 @@ function generarExcelEntradaSalida(asistencias, registros, tipo, fecha) {
       mapa[dni] = {
         tipo: normalizarTipo(tipo),
         departamento: mayuscula(r.departamento),
-        dni,
-        apellido_paterno: mayuscula(r.apellido_paterno),
-        apellido_materno: mayuscula(r.apellido_materno),
-        nombres: mayuscula(r.nombres),
+        dni: dni,
+        nombreCompleto: mayuscula(r.nombre_completo),
         asistenciasMarcadas: new Set(),
       };
     }
@@ -105,9 +101,7 @@ function generarExcelEntradaSalida(asistencias, registros, tipo, fecha) {
       "Tipo": d.tipo,
       "Departamento académico": d.departamento,
       "DNI": d.dni,
-      "Apellido paterno": d.apellido_paterno,
-      "Apellido materno": d.apellido_materno,
-      "Nombre": d.nombres,
+      "Nombre completo": d.nombreCompleto,
       "Asistencias registradas": `${marcadas}/${totalProgramadas}`,
       "Porcentaje": `${porcentaje.toFixed(2)}%`,
     };
@@ -141,10 +135,8 @@ function generarExcelGeneralDia(asistencias, registros, fecha) {
     if (!mapa[dni]) {
       mapa[dni] = {
         departamento: mayuscula(r.departamento),
-        dni,
-        apellido_paterno: mayuscula(r.apellido_paterno),
-        apellido_materno: mayuscula(r.apellido_materno),
-        nombres: mayuscula(r.nombres),
+        dni: dni,
+        nombreCompleto: mayuscula(r.nombre_completo),
         entrada: new Set(),
         salida: new Set(),
       };
@@ -168,9 +160,7 @@ function generarExcelGeneralDia(asistencias, registros, fecha) {
     return {
       "Departamento académico": d.departamento,
       "DNI": d.dni,
-      "Apellido paterno": d.apellido_paterno,
-      "Apellido materno": d.apellido_materno,
-      "Nombre": d.nombres,
+      "Nombre completo": d.nombreCompleto,
       "Entrada": `${entradaMarcada}/${totalEntrada}`,
       "Salida": `${salidaMarcada}/${totalSalida}`,
       "Porcentaje": `${porcentaje.toFixed(2)}%`,
@@ -219,9 +209,7 @@ async function reporteRango() {
     .from("registros_asistencia")
     .select(`
       dni,
-      nombres,
-      apellido_paterno,
-      apellido_materno,
+      nombre_completo,
       departamento,
       correo,
       asistencia_programada_id
@@ -249,10 +237,8 @@ async function reporteRango() {
     if (!mapa[dni]) {
       mapa[dni] = {
         departamento: mayuscula(r.departamento),
-        dni,
-        apellido_paterno: mayuscula(r.apellido_paterno),
-        apellido_materno: mayuscula(r.apellido_materno),
-        nombres: mayuscula(r.nombres),
+        dni: dni,
+        nombreCompleto: mayuscula(r.nombre_completo),
         asistenciasMarcadas: new Set(),
       };
     }
@@ -267,9 +253,7 @@ async function reporteRango() {
     return {
       "Departamento académico": d.departamento,
       "DNI": d.dni,
-      "Apellido paterno": d.apellido_paterno,
-      "Apellido materno": d.apellido_materno,
-      "Nombre": d.nombres,
+      "Nombre completo": d.nombreCompleto,
       "Asistencias registradas": `${marcadas}/${totalProgramadas}`,
       "Porcentaje": `${porcentaje.toFixed(2)}%`,
       "Estado": porcentaje >= 80 ? "APROBADO" : "DESAPROBADO",
